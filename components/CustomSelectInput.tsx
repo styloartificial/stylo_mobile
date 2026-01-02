@@ -1,0 +1,110 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+export interface CustomSelectInputType {
+  key: any;
+  value: string;
+}
+
+interface CustomSelectInputProps {
+  label?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  items: CustomSelectInputType[];
+  placeholder?: string;
+  onValueChange?: (item: CustomSelectInputType) => void;
+}
+
+const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
+  label,
+  icon,
+  items,
+  placeholder = 'Select your closest match',
+  onValueChange,
+}) => {
+  const [selectedItem, setSelectedItem] = useState<CustomSelectInputType | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (item: CustomSelectInputType) => {
+    setSelectedItem(item);
+    setIsOpen(false);
+    onValueChange?.(item);
+  };
+
+  return (
+    <View className="mb-4">
+      {label && (
+        <Text className="mb-1 text-sm font-medium text-gray-700">
+          {label}
+        </Text>
+      )}
+
+      {/* input */}
+      <TouchableOpacity
+        onPress={() => setIsOpen(prev => !prev)}
+        activeOpacity={0.8}
+        className="flex-row items-center rounded-lg border border-border bg-white px-3 py-3"
+      >
+        {icon && (
+          <Ionicons name={icon} size={20} color="#888" className="mr-2" />
+        )}
+
+        <Text
+          className={`flex-1 text-sm ${
+            selectedItem ? 'text-gray-900' : 'text-gray-400'
+          }`}
+        >
+          {selectedItem ? selectedItem.value : placeholder}
+        </Text>
+
+        <Ionicons
+          name={isOpen ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color="#888"
+        />
+      </TouchableOpacity>
+
+      {/* dropdown list */}
+      {isOpen && (
+        <View className="mt-2 max-h-48 overflow-hidden rounded-lg border border-border bg-white">
+          <FlatList
+            data={items}
+            keyExtractor={(item) => String(item.key)}
+            renderItem={({ item }) => {
+              const isSelected = selectedItem?.key === item.key;
+
+              return (
+                <TouchableOpacity
+                  onPress={() => handleSelect(item)}
+                  className={`flex-row items-center justify-between px-4 py-3 ${
+                    isSelected ? 'bg-active/10' : 'bg-white'
+                  }`}
+                >
+                  <Text
+                    className={`text-sm ${
+                      isSelected
+                        ? 'font-medium text-active'
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    {item.value}
+                  </Text>
+
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark"
+                      size={18}
+                      color="#844cd3"
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      )}
+    </View>
+  );
+};
+
+export default CustomSelectInput;
