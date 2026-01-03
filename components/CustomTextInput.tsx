@@ -9,6 +9,12 @@ interface CustomTextInputProps {
   onlyNumber?: boolean;
   isPassword?: boolean;
   isDate?: boolean;
+  containerClassName?: string; 
+  value?: string;
+  onChangeText?: (text: string) => void;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  isRequired?: boolean;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -18,16 +24,33 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onlyNumber = false,
   isPassword = false,
   isDate = false,
+  containerClassName = 'mb-4',
+  value,
+  onChangeText,
+  keyboardType = 'default',
+  autoCapitalize = 'none',
+  isRequired = true,
 }) => {
-  const [value, setValue] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleDatePress = () => {
-    setValue(new Date().toISOString().slice(0, 10));
+    if (onChangeText) {
+      onChangeText(new Date().toISOString().slice(0, 10));
+    }
+  };
+
+  const handleTextChange = (text: string) => {
+    if (onChangeText) {
+      if (onlyNumber) {
+        onChangeText(text.replace(/[^0-9]/g, ''));
+      } else {
+        onChangeText(text);
+      }
+    }
   };
 
   return (
-    <View className="mb-4">
+    <View className={containerClassName}>
       {label && (
         <Text className="mb-1 text-sm font-medium text-gray-700">
           {label}
@@ -59,16 +82,10 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             value={value}
-            onChangeText={text => {
-              if (onlyNumber) {
-                setValue(text.replace(/[^0-9]/g, ''));
-              } else {
-                setValue(text);
-              }
-            }}
-            keyboardType={onlyNumber ? 'numeric' : 'default'}
+            onChangeText={handleTextChange}
+            keyboardType={onlyNumber ? 'numeric' : keyboardType}
             secureTextEntry={isPassword && !showPassword}
-            autoCapitalize="none"
+            autoCapitalize={autoCapitalize}
           />
         )}
 

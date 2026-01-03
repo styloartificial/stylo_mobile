@@ -27,7 +27,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.8}
       className={`
-        w-[300px] py-3 rounded-full flex-row items-center justify-center
+        w-full py-3 rounded-full flex-row items-center justify-center
         ${isPrimary ? 'bg-[#8F42DE]' : 'bg-[#F1F5F7]'}
         ${(disabled || loading) ? 'opacity-50' : ''}
       `}

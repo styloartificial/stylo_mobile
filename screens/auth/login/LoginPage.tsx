@@ -1,23 +1,73 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import AuthScreen from '../AuthScreen';
-import CustomTextInput from 'components/CustomTextInput';
 import AuthButton from 'components/AuthButton';
 import storageHelper from 'helpers/storageHelper';
+import CustomTextInput from 'components/CustomTextInput';
+import AuthFooter from 'components/AuthFooter';
+import authService from 'services/authService';
+import CustomAlert, { AlertType } from 'components/CustomAlert';
 
 interface LoginPageProps {
   onLogin?: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // State untuk Alert
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertType, setAlertType] = useState<AlertType>(AlertType.DANGER);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  const showAlert = (type: AlertType, message: string) => {
+    setAlertType(type);
+    setAlertMessage(message);
+    setAlertVisible(true);
+
+    setTimeout(() => {
+      setAlertVisible(false);
+    }, 5000);
+  };
+
   const handleLogin = async () => {
-    // Simulasi login - simpan token
-    await storageHelper.setItem('login_token', 'dummy_token_12345');
-    
-    // Panggil callback untuk refresh auth state
-    if (onLogin) {
-      onLogin();
+
+    // if (!email || !password) {
+    //   showAlert(AlertType.ALERT, 'Please fill in all fields');
+    //   return;
+    // }
+
+    setIsLoading(true);
+    setAlertVisible(false); 
+
+    try {
+      // Hit endpoint /api/auth/login
+      const response = await authService.login({ email, password });
+      await storageHelper.setItem('login_token', response.data.data.token);
+      await storageHelper.setItem('user_data', JSON.stringify(response.data.data.user));
+
+      showAlert(AlertType.SUCCESS, 'Login successful!');
+
+      setTimeout(() => {
+        onLogin?.();
+      }, 1000);
+      
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+      showAlert(AlertType.DANGER, errorMessage);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    console.log('Forgot password clicked');
+  };
+
+  const handleRegister = () => {
+    console.log('Register clicked');
   };
 
   return (
@@ -26,22 +76,33 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       titleTitle="Log in to Style Your Next Look"
       titleDescription="Save your Favorites outfits and get instant AI recommendation tailored to you."
     >
-      <View className="mx-6 bg-gray-200 rounded-3xl shadow-lg p-6">
-        <View className="mb-6">
+      <View className="mx-6 mb-4 bg-white rounded-3xl shadow-lg p-6">
+
+        <View className="mb-4">
           <Text className="text-2xl font-bold text-gray-800 mb-1">
             Welcome back
           </Text>
-          <Text className="text-gray-500 text-sm">
+          <Text className="text-sm text-gray-500">
             Use your email to continue.
           </Text>
         </View>
-      </View>
-        
-      <View className="px-6">
+
+        {alertVisible && (
+          <CustomAlert
+            type={alertType}
+            message={alertMessage}
+          />
+        )}
+
         <CustomTextInput
           label="Email"
-          placeholder="Enter your email"
+          placeholder="you@example.com"
           icon="mail-outline"
+          containerClassName="mb-4"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
         <CustomTextInput
@@ -49,41 +110,56 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           placeholder="Enter your password"
           icon="lock-closed-outline"
           isPassword
+          containerClassName="mb-3"
+          value={password}
+          onChangeText={setPassword}
         />
-      </View>
 
-      <TouchableOpacity className="items-end mb-6">
-        <Text className="text-teal-500 text-sm font-medium">
-          Forgot password?
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity 
+          className="items-end mb-4"
+          onPress={handleForgotPassword}
+          activeOpacity={0.7}
+        >
+          <Text className="text-sm font-medium text-[#8F42DE]">
+            Forgot password?
+          </Text>
+        </TouchableOpacity>
 
-      <AuthButton
-        title="Login"
-        color="primary"
-        icon="enter-outline"
-        onPress={handleLogin}
-      />
+        <View className="mb-2">
+          <AuthButton
+            title={isLoading ? "Logging in..." : "Login"}
+            color="primary"
+            icon="enter-outline"
+            onPress={handleLogin}
+            disabled={isLoading}
+          />
+        </View>
+        
+        <View className="flex-row items-center my-6 mb-2">
+          <View className="flex-1 h-px bg-gray-300" />
+          <Text className="px-4 text-sm font-medium text-gray-400">OR</Text>
+          <View className="flex-1 h-px bg-gray-300" />
+        </View>
 
-      <View className="flex-row items-center my-6">
-        <View className="flex-1 h-px bg-gray-200" />
-        <Text className="px-4 text-sm text-gray-400 font-medium">
-          OR
-        </Text>
-        <View className="flex-1 h-px bg-gray-200" />
-      </View>
+        <View className="mb-4">
+          <AuthButton
+            title="Login with Google"
+            color="secondary"
+            icon="logo-google"
+            onPress={() => console.log('Google login')}
+          />
+        </View>
 
-      <AuthButton
-        title="Login with Google"
-        color="secondary"
-        icon="logo-google"
-        onPress={() => {}}
-      />
-
-      <Text className="text-center text-gray-500 text-xs mt-6 leading-5">
+        <Text className="mt-6 text-sm leading-5 text-gray-500">
           We never post to your accounts or share your data without permission.
-      </Text>    
-      
+        </Text>
+      </View>
+
+      <AuthFooter
+        type="register"
+        onActionPress={handleRegister}
+      />
+
     </AuthScreen>
   );
 };

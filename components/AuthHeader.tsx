@@ -8,7 +8,7 @@ type AuthHeaderProps = {
 
 const AuthHeader: React.FC<AuthHeaderProps> = ({ description, onLoginPress }) => {
   return (
-    <View className="mb-8 px-4">
+    <View className="mb-4 mt-4 px-4">
       <View className="flex-row items-center mb-2 w-full">
 
         <Image

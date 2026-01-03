@@ -8,7 +8,7 @@ type AuthTitleProps = {
 
 const AuthTitle: React.FC<AuthTitleProps> = ({ title, description }) => {
   return (
-    <View className="mb-6 px-8">
+    <View className="mb-4 px-8">
       <Text className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
         {title}
       </Text>
