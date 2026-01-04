@@ -16,8 +16,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  // State untuk Alert
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertType, setAlertType] = useState<AlertType>(AlertType.DANGER);
   const [alertMessage, setAlertMessage] = useState('');
@@ -34,10 +33,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   const handleLogin = async () => {
 
-    // if (!email || !password) {
-    //   showAlert(AlertType.ALERT, 'Please fill in all fields');
-    //   return;
-    // }
+    if (!email || !password) {
+      showAlert(AlertType.ALERT, 'Please fill in all fields');
+      return;
+    }
 
     setIsLoading(true);
     setAlertVisible(false); 
@@ -135,7 +134,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           />
         </View>
         
-        <View className="flex-row items-center my-6 mb-2">
+        <View className="flex-row items-center mb-2">
           <View className="flex-1 h-px bg-gray-300" />
           <Text className="px-4 text-sm font-medium text-gray-400">OR</Text>
           <View className="flex-1 h-px bg-gray-300" />
