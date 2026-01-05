@@ -3,21 +3,14 @@ import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthButton from 'components/AuthButton';
 import storageHelper from 'helpers/storageHelper';
+import { useRouter } from 'expo-router';
 
-interface HomePageProps {
-  onLogout?: () => void;
-}
-
-const HomePage: React.FC<HomePageProps> = ({ onLogout }) => {
+const HomePage: React.FC = () => {
   const handleLogout = async () => {
-    // Hapus token
     await storageHelper.removeItem('login_token');
-    
-    // Panggil callback untuk refresh auth state
-    if (onLogout) {
-      onLogout();
-    }
+    router.replace('/auth/login');
   };
+  const router = useRouter();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
