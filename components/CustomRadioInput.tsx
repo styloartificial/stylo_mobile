@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -11,18 +11,22 @@ export type CustomRadioButtonType = {
 interface CustomRadioInputProps {
   label?: string;
   items: CustomRadioButtonType[];
+  value?: any; 
+  onValueChange?: (key: any) => void; 
 }
 
 const CustomRadioInput: React.FC<CustomRadioInputProps> = ({
   label,
   items,
+  value, 
+  onValueChange, 
 }) => {
-  const [selectedKey, setSelectedKey] = useState(items[0]?.key);
+  const selectedKey = value ?? items[0]?.key;
 
   return (
     <View className="mb-4">
       {label && (
-        <Text className="mb-1 text-sm font-medium text-gray-700">
+        <Text className="mb-2 text-sm font-medium text-gray-700">
           {label}
         </Text>
       )}
@@ -33,26 +37,25 @@ const CustomRadioInput: React.FC<CustomRadioInputProps> = ({
           
           return (
             <TouchableOpacity
-                key={item.key}
-                onPress={() => setSelectedKey(item.key)}
-                activeOpacity={0.8}
-                className={`
-                    px-4 py-3 rounded-full flex-row items-center
-                    ${isSelected 
-                    ? 'bg-primary'
-                    : 'bg-gray-50 border border-gray-300'
-                    }
-                `}
-                >
-                <Text 
-                    className={`text-sm font-medium ${
-                    isSelected ? 'text-white' : 'text-gray-800'
-                    }`}
-                >
-                    {item.value}
-                </Text>
+              key={item.key}
+              onPress={() => onValueChange?.(item.key)} 
+              activeOpacity={0.8}
+              className={`
+                px-4 py-2 rounded-full flex-row items-center
+                ${isSelected 
+                  ? 'bg-primary'
+                  : 'bg-gray-50 border border-gray-300'
+                }
+              `}
+            >
+              <Text 
+                className={`text-sm font-medium ${
+                  isSelected ? 'text-white' : 'text-gray-800'
+                }`}
+              >
+                {item.value}
+              </Text>
             </TouchableOpacity>
-
           );
         })}
       </View>

@@ -25,13 +25,6 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({ description, onLoginPress }) =>
             {description}
           </Text>
         </View>
-
-        <Pressable onPress={onLoginPress} className="ml-auto pr-6">
-          <Text className="text-[#8F42DE] font-semibold text-sm">
-            Log in
-          </Text>
-        </Pressable>
-
       </View>
     </View>
   );

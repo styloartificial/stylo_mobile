@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export interface CustomSelectInputType {
@@ -12,21 +12,24 @@ interface CustomSelectInputProps {
   icon?: keyof typeof Ionicons.glyphMap;
   items: CustomSelectInputType[];
   placeholder?: string;
+  value?: any; 
   onValueChange?: (item: CustomSelectInputType) => void;
 }
+
 
 const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
   label,
   icon,
   items,
   placeholder = 'Select your closest match',
+  value,
   onValueChange,
 }) => {
-  const [selectedItem, setSelectedItem] = useState<CustomSelectInputType | null>(null);
+  
+  const selectedItem = items.find((item) => item.key === value) || null;
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (item: CustomSelectInputType) => {
-    setSelectedItem(item);
     setIsOpen(false);
     onValueChange?.(item);
   };
@@ -64,17 +67,19 @@ const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
         />
       </TouchableOpacity>
 
-      {/* dropdown list */}
+   
       {isOpen && (
         <View className="mt-2 max-h-48 overflow-hidden rounded-lg border border-border bg-white">
-          <FlatList
-            data={items}
-            keyExtractor={(item) => String(item.key)}
-            renderItem={({ item }) => {
+          <ScrollView 
+            nestedScrollEnabled={true} 
+            showsVerticalScrollIndicator={true}
+          >
+            {items.map((item) => {
               const isSelected = selectedItem?.key === item.key;
 
               return (
                 <TouchableOpacity
+                  key={String(item.key)}
                   onPress={() => handleSelect(item)}
                   className={`flex-row items-center justify-between px-4 py-3 ${
                     isSelected ? 'bg-active/10' : 'bg-white'
@@ -99,8 +104,8 @@ const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
                   )}
                 </TouchableOpacity>
               );
-            }}
-          />
+            })}
+          </ScrollView>
         </View>
       )}
     </View>
