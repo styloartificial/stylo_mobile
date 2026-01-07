@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 export interface CustomSelectInputType {
   key: any;
   value: string;
+  description?: string;
 }
 
 interface CustomSelectInputProps {
@@ -15,7 +16,6 @@ interface CustomSelectInputProps {
   value?: any; 
   onValueChange?: (item: CustomSelectInputType) => void;
 }
-
 
 const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
   label,
@@ -67,9 +67,8 @@ const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
         />
       </TouchableOpacity>
 
-   
       {isOpen && (
-        <View className="mt-2 max-h-48 overflow-hidden rounded-lg border border-border bg-white">
+        <View className="mt-2 max-h-64 overflow-hidden rounded-lg border border-border bg-white">
           <ScrollView 
             nestedScrollEnabled={true} 
             showsVerticalScrollIndicator={true}
@@ -81,27 +80,38 @@ const CustomSelectInput: React.FC<CustomSelectInputProps> = ({
                 <TouchableOpacity
                   key={String(item.key)}
                   onPress={() => handleSelect(item)}
-                  className={`flex-row items-center justify-between px-4 py-3 ${
+                  className={`px-4 py-3 ${
                     isSelected ? 'bg-active/10' : 'bg-white'
                   }`}
                 >
-                  <Text
-                    className={`text-sm ${
-                      isSelected
-                        ? 'font-medium text-active'
-                        : 'text-gray-700'
-                    }`}
-                  >
-                    {item.value}
-                  </Text>
+                  <View className="flex-row items-start justify-between">
+                    <View className="flex-1 pr-2">
+                      <Text
+                        className={`text-sm font-medium ${
+                          isSelected
+                            ? 'text-active'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        {item.value}
+                      </Text>
+                      
+                      {item.description && (
+                        <Text className="mt-1 text-xs text-gray-500 leading-4">
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
 
-                  {isSelected && (
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color="#844cd3"
-                    />
-                  )}
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark"
+                        size={18}
+                        color="#844cd3"
+                        className="mt-0.5"
+                      />
+                    )}
+                  </View>
                 </TouchableOpacity>
               );
             })}

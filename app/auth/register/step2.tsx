@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+
 import CustomTextInput from 'components/CustomTextInput';
 import CustomRadioInput, { CustomRadioButtonType } from 'components/CustomRadioInput';
 import CustomSelectInput, { CustomSelectInputType } from 'components/CustomSelectInput';
 import CustomAlert, { AlertType } from 'components/CustomAlert';
 import AuthButton from 'components/AuthButton';
+
 import authService from 'services/authService';
-import { useRouter } from 'expo-router';
 import storageHelper from 'helpers/storageHelper';
 
 interface Step2Props {
@@ -20,18 +22,6 @@ interface Step2Props {
 
 type GenderType = 'female' | 'male';
 
-const skinToneOptions: CustomSelectInputType[] = [
-  { key: 1, value: 'Very Fair' },      
-  { key: 2, value: 'Fair' },
-  { key: 3, value: 'Light' },
-  { key: 4, value: 'Medium' },
-  { key: 5, value: 'Olive' },
-  { key: 6, value: 'Tan' },
-  { key: 7, value: 'Brown' },
-  { key: 8, value: 'Dark Brown' },
-  { key: 9, value: 'Deep' },
-];
-
 export default function Step2({ formData, onBack }: Step2Props) {
   const router = useRouter();
 
@@ -39,17 +29,15 @@ export default function Step2({ formData, onBack }: Step2Props) {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
-  const [skinTone, setSkinTone] = useState<number>(skinToneOptions[0].key as number);
-  
+  const [skinTone, setSkinTone] = useState<number | null>(null);
+  const [skinToneOptions, setSkinToneOptions] = useState<CustomSelectInputType[]>([]);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSkinTone, setIsLoadingSkinTone] = useState(true);
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertType, setAlertType] = useState<AlertType>(AlertType.DANGER);
   const [alertMessage, setAlertMessage] = useState('');
-
-  const genderOptions: CustomRadioButtonType[] = [
-    { key: 'female', value: 'Female' },
-    { key: 'male', value: 'Male' },
-  ];
 
   const showAlert = (type: AlertType, message: string) => {
     setAlertType(type);
@@ -61,143 +49,115 @@ export default function Step2({ formData, onBack }: Step2Props) {
     }, 5000);
   };
 
+  const genderOptions: CustomRadioButtonType[] = [
+    { key: 'female', value: 'Female' },
+    { key: 'male', value: 'Male' },
+  ];
+
+  useEffect(() => {
+    const fetchSkinTones = async () => {
+      try {
+        setIsLoadingSkinTone(true);
+        const response = await authService.getSkinTones();
+
+        const options: CustomSelectInputType[] =
+          response.data?.data?.map((item: any) => ({
+            key: item.id,
+            value: item.title,
+            description: item.description,
+          })) || [];
+
+        setSkinToneOptions(options);
+
+        if (options.length > 0) {
+          setSkinTone(options[0].key as number);
+        }
+      } catch (error: any) {
+        const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
+
+        const errorMessage =
+          errors
+            ? Object.values(errors)[0][0]
+            : error.response?.data?.message || 'Failed to load skin tone options';
+
+        showAlert(AlertType.DANGER, errorMessage);
+      } finally {
+        setIsLoadingSkinTone(false);
+      }
+    };
+
+    fetchSkinTones();
+  }, []);
+
   const handleCompleteSignup = async () => {
-    console.log('=== FORM VALIDATION START ===');
-    console.log('Current state:', {
-      gender,
-      dateOfBirth,
-      height,
-      weight,
-      skinTone
-    });
-
-    // Validasi per field
-    if (!dateOfBirth.trim()) {
-      showAlert(AlertType.ALERT, 'Please enter your date of birth');
-      return;
-    }
-
-    if (!height.trim()) {
-      showAlert(AlertType.ALERT, 'Please enter your height');
-      return;
-    }
-
-    if (!weight.trim()) {
-      showAlert(AlertType.ALERT, 'Please enter your weight');
-      return;
-    }
-
-    // Validasi format tanggal DD/MM/YYYY
-    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-    if (!dateRegex.test(dateOfBirth)) {
-      showAlert(AlertType.ALERT, 'Date format must be DD/MM/YYYY (e.g., 28/09/2004)');
-      return;
-    }
-
-    // Validasi tanggal valid
-    const [day, month, year] = dateOfBirth.split('/').map(Number);
-    const dateObj = new Date(year, month - 1, day);
-    
-    if (
-      dateObj.getDate() !== day ||
-      dateObj.getMonth() !== month - 1 ||
-      dateObj.getFullYear() !== year
-    ) {
-      showAlert(AlertType.ALERT, 'Please enter a valid date');
-      return;
-    }
-
-    // Cek tanggal tidak di masa depan
-    if (dateObj > new Date()) {
-      showAlert(AlertType.ALERT, 'Date of birth cannot be in the future');
-      return;
-    }
-
-    // Validasi height dan weight
-    const heightInt = parseInt(height);
-    const weightInt = parseInt(weight);
-    
-    if (isNaN(heightInt) || heightInt <= 0) {
-      showAlert(AlertType.ALERT, 'Please enter a valid height (e.g., 170)');
-      return;
-    }
-    
-    if (isNaN(weightInt) || weightInt <= 0) {
-      showAlert(AlertType.ALERT, 'Please enter a valid weight (e.g., 60)');
-      return;
-    }
-
-
-    if (!gender || !skinTone) {
+    if (!dateOfBirth || !height || !weight || !skinTone) {
       showAlert(AlertType.ALERT, 'Please complete all fields');
       return;
     }
 
-    console.log('=== VALIDATION PASSED ===');
+    const heightInt = parseInt(height);
+    const weightInt = parseInt(weight);
+
+    if (isNaN(heightInt) || heightInt <= 0) {
+      showAlert(AlertType.ALERT, 'Please enter a valid height');
+      return;
+    }
+
+    if (isNaN(weightInt) || weightInt <= 0) {
+      showAlert(AlertType.ALERT, 'Please enter a valid weight');
+      return;
+    }
 
     setIsLoading(true);
     setAlertVisible(false);
 
     try {
-      const [day, month, year] = dateOfBirth.split('/');
-      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-
+    
       const genderMap: Record<GenderType, string> = {
-        'female': 'FEMALE',
-        'male': 'MALE',
+        female: 'FEMALE',
+        male: 'MALE',
       };
 
-      const registrationData = {
+      const registrationData: any = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        password_confirmation: formData.password, 
-        gender: genderMap[gender], 
-        date_of_birth: formattedDate, 
+        password_confirmation: formData.password,
+        gender: genderMap[gender],
+        date_of_birth: dateOfBirth, 
         height: heightInt,
         weight: weightInt,
-        skin_tone_id: skinTone, 
+        skin_tone_id: skinTone,
       };
-
-      console.log('📤 Sending registration data:', registrationData);
 
       const response = await authService.register(registrationData);
 
-      if (response.status === 200 || response.status === 201) {
-        await storageHelper.setItem('login_token', response.data.data.token);
-        await storageHelper.setItem('user_data', JSON.stringify(response.data.data.user));
+      const token = response.data?.data?.token;
+      const user = response.data?.data?.user;
+      const message = response.data?.message;
 
-        showAlert(AlertType.SUCCESS, 'Registration successful!');
-
-        setTimeout(() => {
-          router.replace('/dashboard/home');
-        }, 1000);
+      if (token) {
+        await storageHelper.setItem('login_token', token);
       }
-      
+
+      if (user) {
+        await storageHelper.setItem('user_data', JSON.stringify(user));
+      }
+
+      if (message && message !== 'Success') {
+        showAlert(AlertType.SUCCESS, message);
+      }
+
+      router.replace('/dashboard/home');
+
     } catch (error: any) {
-      console.error('❌ Registration error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error data:', error.response?.data);
-      
-      let errorMessage = 'Registration failed. Please try again.';
-      
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        
-        if (errorData.errors) {
-          const errorMessages = Object.entries(errorData.errors)
-            .map(([field, messages]) => {
-              const fieldName = field.replace(/_/g, ' ');
-              return `${fieldName}: ${(messages as string[]).join(', ')}`;
-            })
-            .join('\n');
-          
-          errorMessage = errorMessages;
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-      }
-      
+      const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
+
+      const errorMessage =
+        errors
+          ? Object.values(errors)[0][0]
+          : error.response?.data?.message || 'Registration failed';
+
       showAlert(AlertType.DANGER, errorMessage);
     } finally {
       setIsLoading(false);
@@ -216,29 +176,22 @@ export default function Step2({ formData, onBack }: Step2Props) {
           </Text>
         </View>
 
-        {alertVisible && (
-          <CustomAlert type={alertType} message={alertMessage} />
-        )}
+        {alertVisible && <CustomAlert type={alertType} message={alertMessage} />}
 
         <CustomRadioInput
           label="Gender"
           items={genderOptions}
           value={gender}
-          onValueChange={(key) => {
-            console.log('✅ Gender selected:', key);
-            setGender(key as GenderType);
-          }}
+          onValueChange={(key) => setGender(key as GenderType)}
         />
 
         <CustomTextInput
-          label="Date of birth"
-          placeholder="DD / MM / YYYY"
+          label="Date of Birth"
+          placeholder="Select your date of birth"
           icon="calendar-outline"
-          containerClassName="mb-2"
+          isDate
           value={dateOfBirth}
-          onChangeText={(text) => {
-            setDateOfBirth(text);
-          }}
+          onChangeText={setDateOfBirth}
         />
 
         <View className="flex-row gap-3">
@@ -248,9 +201,7 @@ export default function Step2({ formData, onBack }: Step2Props) {
               placeholder="170 cm"
               icon="resize-outline"
               value={height}
-              onChangeText={(text) => {
-                setHeight(text);
-              }}
+              onChangeText={setHeight}
               keyboardType="numeric"
             />
           </View>
@@ -260,9 +211,7 @@ export default function Step2({ formData, onBack }: Step2Props) {
               placeholder="60 kg"
               icon="fitness-outline"
               value={weight}
-              onChangeText={(text) => {
-                setWeight(text);
-              }}
+              onChangeText={setWeight}
               keyboardType="numeric"
             />
           </View>
@@ -272,14 +221,12 @@ export default function Step2({ formData, onBack }: Step2Props) {
           label="Skin tone"
           icon="color-palette-outline"
           items={skinToneOptions}
-          placeholder="Select your closest match"
+          placeholder={isLoadingSkinTone ? 'Loading...' : 'Select your closest match'}
           value={skinTone}
-          onValueChange={(item) => {
-            setSkinTone(item.key as number);
-          }}
+          onValueChange={(item) => setSkinTone(item.key as number)}
         />
 
-        <View className="flex-row gap-3 mb-4 mt-2">
+        <View className="flex-row gap-3 mt-4">
           <View className="flex-1">
             <AuthButton
               title="Back"
@@ -291,22 +238,19 @@ export default function Step2({ formData, onBack }: Step2Props) {
           </View>
           <View className="flex-1">
             <AuthButton
-              title={isLoading ? "Signing up..." : "sign up"}
+              title={isLoading ? 'Signing up...' : 'Sign up'}
               color="primary"
               icon="checkmark-outline"
               onPress={handleCompleteSignup}
-              disabled={isLoading}
+              disabled={isLoading || isLoadingSkinTone}
             />
           </View>
         </View>
-        
       </View>
 
-      <View>
-        <Text className="text-xs leading-5 text-gray-500 text-center">
-          You can update these details anytime in your profile settings.
-        </Text>
-      </View>
-    </>       
+      <Text className="text-xs leading-5 text-gray-500 text-center">
+        You can update these details anytime in your profile settings.
+      </Text>
+    </>
   );
 }

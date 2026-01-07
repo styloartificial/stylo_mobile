@@ -15,6 +15,7 @@ interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  password_confirmation: string;
   gender: string;
   date_of_birth: string;
   height: number;
@@ -22,9 +23,10 @@ interface RegisterRequest {
   skin_tone_id: number;
 }
 
-interface SkinTone {
+interface SkinToneResponse {
   id: number;
-  name: string;
+  title: string;
+  description: string;
 }
 
 export const authService = {
@@ -43,8 +45,12 @@ export const authService = {
     return response;
   },
 
-    getSkinTones: async () => {
-    const response = await axiosHelper.get('/auth/register/skin-tone');
+  getSkinTones: async () => {
+    const response = await axiosHelper.get<{
+      success: boolean;
+      message: string;
+      data: SkinToneResponse[];
+    }>('/auth/register/skin-tone');
     return response;
   },
 };

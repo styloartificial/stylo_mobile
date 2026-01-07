@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface CustomTextInputProps {
   label?: string;
@@ -9,12 +10,11 @@ interface CustomTextInputProps {
   onlyNumber?: boolean;
   isPassword?: boolean;
   isDate?: boolean;
-  containerClassName?: string; 
+  containerClassName?: string;
   value?: string;
   onChangeText?: (text: string) => void;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  isRequired?: boolean;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -29,23 +29,26 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onChangeText,
   keyboardType = 'default',
   autoCapitalize = 'none',
-  isRequired = true,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleDatePress = () => {
-    if (onChangeText) {
-      onChangeText(new Date().toISOString().slice(0, 10));
+  const handleTextChange = (text: string) => {
+    if (!onChangeText) return;
+
+    if (onlyNumber) {
+      onChangeText(text.replace(/[^0-9]/g, ''));
+    } else {
+      onChangeText(text);
     }
   };
 
-  const handleTextChange = (text: string) => {
-    if (onChangeText) {
-      if (onlyNumber) {
-        onChangeText(text.replace(/[^0-9]/g, ''));
-      } else {
-        onChangeText(text);
-      }
+  const handleDateChange = (_: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+
+    if (selectedDate && onChangeText) {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      onChangeText(formattedDate);
     }
   };
 
@@ -57,25 +60,24 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         </Text>
       )}
 
-      <View className="flex-row items-center rounded-lg border border-gray-200 bg-gray-50 px-3">
+      <TouchableOpacity
+        activeOpacity={isDate ? 0.7 : 1}
+        onPress={() => isDate && setShowDatePicker(true)}
+        className="flex-row items-center rounded-lg border border-gray-200 bg-gray-50 px-3"
+      >
         {icon && (
           <Ionicons
             name={icon}
             size={20}
             color="#888"
-            className="mr-2"
+            style={{ marginRight: 8 }}
           />
         )}
 
         {isDate ? (
-          <TouchableOpacity
-            onPress={handleDatePress}
-            className="flex-1 py-2"
-          >
-            <Text className={value ? 'text-gray-900' : 'text-gray-400'}>
-              {value || placeholder}
-            </Text>
-          </TouchableOpacity>
+          <Text className={`flex-1 py-3 ${value ? 'text-gray-900' : 'text-gray-400'}`}>
+            {value || placeholder}
+          </Text>
         ) : (
           <TextInput
             className="flex-1 py-3 text-gray-900"
@@ -90,10 +92,7 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
         )}
 
         {isPassword && (
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            className="ml-2"
-          >
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
             <Ionicons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={20}
@@ -101,7 +100,17 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             />
           </TouchableOpacity>
         )}
-      </View>
+      </TouchableOpacity>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={value ? new Date(value) : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          maximumDate={new Date()} 
+        />
+      )}
     </View>
   );
 };

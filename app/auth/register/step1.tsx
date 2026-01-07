@@ -50,24 +50,28 @@ export default function Step1({ formData, updateFormData, onNext }: Step1Props) 
     setAlertVisible(false);
 
     try {
-      // Hit endpoint /api/auth/register/check-email
-      const response = await authService.checkEmail({ 
-        name: formData.name, 
-        email: formData.email, 
-        password: formData.password 
+      const response = await authService.checkEmail({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
 
-      
-      if (response.status === 200) {
-        showAlert(AlertType.SUCCESS, 'Email verified! Proceeding to next step...');
-        
-        setTimeout(() => {
-          onNext(); 
-        }, 1000);
+      const message = response?.data?.message;
+
+      if (message && message !== 'Success') {
+        showAlert(AlertType.SUCCESS, message);
       }
-      
+
+      onNext();
+
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
+
+      const errorMessage =
+        errors
+          ? Object.values(errors)[0][0]
+          : error.response?.data?.message || 'Registration failed';
+
       showAlert(AlertType.DANGER, errorMessage);
     } finally {
       setIsLoading(false);
@@ -133,7 +137,7 @@ export default function Step1({ formData, updateFormData, onNext }: Step1Props) 
 
         <View className="mb-2">
           <AuthButton
-            title={isLoading ? "Checking..." : "Next"}
+            title={isLoading ? 'Checking...' : 'Next'}
             color="primary"
             icon="arrow-forward-outline"
             onPress={handleNext}
