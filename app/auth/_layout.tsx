@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Slot, Redirect } from 'expo-router';
 import AuthHeader from 'components/AuthHeader';
@@ -17,22 +17,30 @@ export default function AuthLayout() {
   }, []);
 
   if (isLoggedIn === null) return null;
-  if (isLoggedIn) return <Redirect href="/dashboard/home" />;
+
+  if (isLoggedIn) {
+    return <Redirect href="/dashboard/home" />;
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      
-      <AuthHeader description="Smarter outfits, every day" />
-
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
-        <View className="px-6">
-          <Slot />
-        </View>
-      </ScrollView>
+        <AuthHeader description="Smarter outfits, every day" />
 
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-6">
+            <Slot />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
