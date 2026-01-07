@@ -21,13 +21,18 @@ export default function AuthLayout() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView>
-        <AuthHeader description="Smarter outfits, every day" />
+      
+      <AuthHeader description="Smarter outfits, every day" />
 
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="px-6">
           <Slot />
         </View>
       </ScrollView>
+
     </SafeAreaView>
   );
 }
