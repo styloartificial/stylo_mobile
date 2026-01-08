@@ -8,6 +8,7 @@ import CustomAlert, { AlertType } from 'components/CustomAlert';
 import AuthButton from 'components/AuthButton';
 import { useRouter } from 'expo-router';
 import AuthTitle from 'components/AuthTitle';
+import { signInWithGoogle } from 'services/authGoogleService';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -53,6 +54,35 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleLogin = async () => {
+  setIsLoading(true);
+  setAlertVisible(false);
+
+  try {
+    const user = await signInWithGoogle();
+
+    if (!user) {
+      showAlert(AlertType.DANGER, 'Google login cancelled or failed.');
+      return;
+    }
+
+    await storageHelper.setItem('login_token', user.idToken);
+    await storageHelper.setItem('user_data', JSON.stringify(user));
+
+    showAlert(AlertType.SUCCESS, 'Google login successful!');
+
+    setTimeout(() => {
+      router.replace('/dashboard/home');
+    }, 500);
+  } catch (error: any) {
+    console.error(error);
+    showAlert(AlertType.DANGER, 'Google login failed. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleForgotPassword = () => router.push('/auth/forgot-password');
   const handleRegister = () => router.push('/auth/register'); 
@@ -128,7 +158,8 @@ export default function LoginPage() {
             title="Login with Google"
             color="secondary"
             icon="logo-google"
-            onPress={() => console.log('Google login')}
+            onPress={handleGoogleLogin}
+            disabled={isLoading}
           />
         </View>
 

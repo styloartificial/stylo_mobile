@@ -24,12 +24,19 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stylo-ai.styloartificial"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/logo.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.stylo_ai.styloartificial"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "44938cb2-1206-4cb4-9154-f6c41d1be23c"
       }
     }
   }
