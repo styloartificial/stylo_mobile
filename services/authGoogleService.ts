@@ -1,52 +1,38 @@
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
-import { decode as base64Decode } from 'base-64';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID!,
-  offlineAccess: true,
-  forceCodeForRefreshToken: true,
-});
+WebBrowser.maybeCompleteAuthSession();
 
-export async function signInWithGoogle() {
-  try {
-    await GoogleSignin.hasPlayServices();
+export function authGoogleService() {
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'stylo',
+  });
 
-    await GoogleSignin.signIn();
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID!,
+    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID!,
+    iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID!,
+    scopes: ['openid', 'profile', 'email'],
+    responseType: 'id_token',
+    redirectUri,
+  });
 
-    const { idToken, accessToken } = await GoogleSignin.getTokens();
+  const signInWithGoogle = async (): Promise<{ idToken: string } | null> => {
+    const result = await promptAsync();
 
-    if (!idToken) {
-      throw new Error('Google idToken is null');
-    }
-
-    // Decode JWT safely
-    const payload = JSON.parse(
-      base64Decode(idToken.split('.')[1])
-    );
-
-    const login_id = payload.sub;
-
-    console.log('LOGIN ID:', login_id);
-
-    return {
-      provider: 'google',
-      login_id,
-      accessToken,
-      idToken,
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture,
-    };
-  } catch (error: any) {
-    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      console.log('User cancelled');
+    if (result.type !== 'success') {
       return null;
     }
 
-    console.error('Google Sign-In Error:', error);
-    throw error;
-  }
+    const idToken = result.params?.id_token;
+    if (!idToken) return null;
+
+    return { idToken };
+  };
+
+  return {
+    signInWithGoogle,
+    ready: !!request,
+  };
 }

@@ -8,7 +8,7 @@ import CustomAlert, { AlertType } from 'components/CustomAlert';
 import AuthButton from 'components/AuthButton';
 import { useRouter } from 'expo-router';
 import AuthTitle from 'components/AuthTitle';
-import { signInWithGoogle } from 'services/authGoogleService';
+import { authGoogleService } from 'services/authGoogleService';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -55,37 +55,47 @@ export default function LoginPage() {
     }
   };
 
+  const { signInWithGoogle, ready } = authGoogleService();
+
   const handleGoogleLogin = async () => {
-  setIsLoading(true);
-  setAlertVisible(false);
+    if (!ready) return;
 
-  try {
-    const user = await signInWithGoogle();
+    setIsLoading(true);
+    setAlertVisible(false);
 
-    if (!user) {
-      showAlert(AlertType.DANGER, 'Google login cancelled or failed.');
-      return;
-    }
+    try {
+      const result = await signInWithGoogle();
 
-    await storageHelper.setItem('login_token', user.idToken);
-    await storageHelper.setItem('user_data', JSON.stringify(user));
+      if (!result) {
+        showAlert(AlertType.DANGER, 'Google login cancelled or failed.');
+        return;
+      }
 
-    showAlert(AlertType.SUCCESS, 'Google login successful!');
+      const response = await authService.loginWithGoogle(result.idToken);
 
-    setTimeout(() => {
+      const { token, user } = response.data.data;
+
+      await storageHelper.setItem('login_token', token);
+      await storageHelper.setItem('user_data', JSON.stringify(user));
+
+      showAlert(AlertType.SUCCESS, 'Google login successful!');
       router.replace('/dashboard/home');
-    }, 500);
-  } catch (error: any) {
-    console.error(error);
-    showAlert(AlertType.DANGER, 'Google login failed. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    } catch (error: any) {
+      console.error(error);
+
+      const message =
+        error.response?.data?.message ||
+        'Google login failed. Please try again.';
+
+      showAlert(AlertType.DANGER, message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   const handleForgotPassword = () => router.push('/auth/forgot-password');
-  const handleRegister = () => router.push('/auth/register'); 
+  const handleRegister = () => router.push('/auth/register');
 
   return (
     <>
@@ -127,7 +137,7 @@ export default function LoginPage() {
           onChangeText={setPassword}
         />
 
-        <TouchableOpacity 
+        <TouchableOpacity
           className="items-end mb-4"
           onPress={handleForgotPassword}
           activeOpacity={0.7}
@@ -167,8 +177,8 @@ export default function LoginPage() {
           We never post to your accounts or share your data without permission.
         </Text>
       </View>
-      
+
       <AuthFooter type="register" onActionPress={handleRegister} />
-    </>      
+    </>
   );
 }

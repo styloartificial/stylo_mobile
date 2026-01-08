@@ -35,6 +35,12 @@ export const authService = {
         return response;
     },
 
+  loginWithGoogle(idToken: string) {
+    return axiosHelper.post('/auth/login/google', {
+      id_token: idToken,
+    });
+  },
+
   checkEmail: async (request: CheckEmailRequest) => {
     const response = await axiosHelper.post('/auth/register/check-email', request);
     return response;
