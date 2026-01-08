@@ -8,7 +8,7 @@ import CustomAlert, { AlertType } from 'components/CustomAlert';
 import AuthButton from 'components/AuthButton';
 import { useRouter } from 'expo-router';
 import AuthTitle from 'components/AuthTitle';
-import { authGoogleService } from 'services/authGoogleService';
+import { signInWithGoogle } from 'services/authGoogleService';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -55,11 +55,7 @@ export default function LoginPage() {
     }
   };
 
-  const { signInWithGoogle, ready } = authGoogleService();
-
   const handleGoogleLogin = async () => {
-    if (!ready) return;
-
     setIsLoading(true);
     setAlertVisible(false);
 
@@ -71,8 +67,8 @@ export default function LoginPage() {
         return;
       }
 
+      // Kirim idToken ke backend untuk login
       const response = await authService.loginWithGoogle(result.idToken);
-
       const { token, user } = response.data.data;
 
       await storageHelper.setItem('login_token', token);
@@ -92,7 +88,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
 
   const handleForgotPassword = () => router.push('/auth/forgot-password');
   const handleRegister = () => router.push('/auth/register');

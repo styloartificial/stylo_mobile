@@ -1,38 +1,29 @@
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID!, 
+  offlineAccess: false, 
+});
 
-export function authGoogleService() {
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'stylo',
-  });
+export async function signInWithGoogle(): Promise<{ idToken: string } | null> {
+  try {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const userInfo = await GoogleSignin.signIn();
+    const idToken = userInfo.data?.idToken;
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID!,
-    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID!,
-    iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID!,
-    scopes: ['openid', 'profile', 'email'],
-    responseType: 'id_token',
-    redirectUri,
-  });
-
-  const signInWithGoogle = async (): Promise<{ idToken: string } | null> => {
-    const result = await promptAsync();
-
-    if (result.type !== 'success') {
-      return null;
-    }
-
-    const idToken = result.params?.id_token;
     if (!idToken) return null;
 
     return { idToken };
-  };
-
-  return {
-    signInWithGoogle,
-    ready: !!request,
-  };
+  } catch (error: any) {
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      console.log('User cancelled login');
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      console.log('Sign in in progress');
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      console.log('Play Services not available');
+    } else {
+      console.error('Google Sign In error:', error);
+    }
+    return null;
+  }
 }

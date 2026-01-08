@@ -2,7 +2,4 @@
   <string name="app_name">Stylo Artificial</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
-  <string name="default_web_client_id">
-    1077619769536-cuhijfciuhf0kot7mt079bmni5ljoucs.apps.googleusercontent.com
-  </string>
 </resources>
