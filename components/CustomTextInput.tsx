@@ -15,6 +15,8 @@ interface CustomTextInputProps {
   onChangeText?: (text: string) => void;
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  maxLength?: number;   
+  editable?: boolean;
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
@@ -29,6 +31,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   onChangeText,
   keyboardType = 'default',
   autoCapitalize = 'none',
+  maxLength,          
+  editable = true,  
+
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -88,6 +93,8 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
             keyboardType={onlyNumber ? 'numeric' : keyboardType}
             secureTextEntry={isPassword && !showPassword}
             autoCapitalize={autoCapitalize}
+            maxLength={maxLength}   
+            editable={editable}
           />
         )}
 

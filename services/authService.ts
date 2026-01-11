@@ -23,6 +23,23 @@ interface RegisterRequest {
   skin_tone_id: number;
 }
 
+interface SendOtpRequest {
+  email: string;
+}
+
+interface SubmitTokenRequest {
+  email: string;
+  token: string; 
+}
+
+
+interface ChangePasswordRequest {
+  email: string;
+  token: string; 
+  new_password: string; 
+  new_password_confirmation: string; 
+}
+
 interface SkinToneResponse {
   id: number;
   title: string;
@@ -31,9 +48,9 @@ interface SkinToneResponse {
 
 export const authService = {
   login: async (request: LoginRequest) => {
-        const response = await axiosHelper.post('/auth/login', request);
-        return response;
-    },
+    const response = await axiosHelper.post('/auth/login', request);
+    return response;
+  },
 
   loginWithGoogle(idToken: string) {
     return axiosHelper.post('/auth/login/google', {
@@ -57,6 +74,21 @@ export const authService = {
       message: string;
       data: SkinToneResponse[];
     }>('/auth/register/skin-tone');
+    return response;
+  },
+
+  sendForgotPasswordOtp: async (request: SendOtpRequest) => {
+    const response = await axiosHelper.post('/auth/forgot-password/send-otp', request);
+    return response;
+  },
+
+  submitResetToken: async (request: SubmitTokenRequest) => {
+    const response = await axiosHelper.post('/auth/forgot-password/submit-token', request);
+    return response;
+  },
+
+  changePassword: async (request: ChangePasswordRequest) => {
+    const response = await axiosHelper.post('/auth/forgot-password/change-password', request);
     return response;
   },
 };
