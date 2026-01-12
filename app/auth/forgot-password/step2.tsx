@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import CustomTextInput from 'components/CustomTextInput';
+import CustomResetToken from 'components/CustomResetToken';
 import CustomAlert, { AlertType } from 'components/CustomAlert';
 import AuthButton from 'components/AuthButton';
 import authService from 'services/authService';
@@ -40,7 +41,7 @@ export default function Step2({
     }
 
     if (otp.length !== 5) {
-      showAlert(AlertType.ALERT, 'Please enter 6-digit verification code');
+      showAlert(AlertType.ALERT, 'Please enter 4-digit verification code');
       return;
     }
 
@@ -48,20 +49,12 @@ export default function Step2({
     setAlertVisible(false);
 
     try {
-      const response = await authService.submitResetToken({
+      await authService.submitResetToken({
         email,
         token: otp,
       });
 
-      const message = response?.data?.message;
-
-      if (message && message !== 'Success') {
-        showAlert(AlertType.SUCCESS, message);
-      }
-
-      setTimeout(() => {
-        onNext();
-      }, 1500);
+      onNext();
       
     } catch (error: any) {
       const response = error?.response?.data;
@@ -115,24 +108,18 @@ export default function Step2({
           <CustomAlert type={alertType} message={alertMessage} />
         )}
 
-        <CustomTextInput
-          label="Email"
-          placeholder="Email"
-          icon="mail-outline"
-          value={email}
-          editable={false}
-          containerClassName="mb-4"
-        />
+        <Text className="text-gray-900 font-medium mb-2">
+          Verification Code
+        </Text>
+        <Text className="text-gray-500 text-sm mb-2">
+          We've sent a code to {email}
+        </Text>
 
-        <CustomTextInput
-          label="Verification Code"
-          placeholder="Enter OTP code"
-          icon="key-outline"
+        <CustomResetToken
           value={otp}
           onChangeText={text => updateFormData({ otp: text })}
-          onlyNumber
-          containerClassName="mb-6"
-          maxLength={5}
+          length={5}
+          
         />
 
         <AuthButton

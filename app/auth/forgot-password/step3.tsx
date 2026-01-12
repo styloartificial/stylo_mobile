@@ -66,17 +66,19 @@ export default function Step3({
         new_password_confirmation: confirmPassword,
       });
 
-      const message = response?.data?.message;
+      const message = response?.data?.message || 'Password successfully changed';
 
-      if (message && message !== 'Success') {
-        showAlert(AlertType.SUCCESS, message);
-      }
+      showAlert(AlertType.SUCCESS, message);
 
-      onSuccess(); 
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+      
     } catch (error: any) {
       const response = error?.response?.data;
 
       const errorMessage =
+        response?.errors?.new_password?.[0] ||
         response?.errors?.password?.[0] ||
         response?.message ||
         'Failed to change password';
