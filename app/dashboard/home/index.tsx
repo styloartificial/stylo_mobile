@@ -16,14 +16,6 @@ const HomePage: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white">
-      <CustomHeader
-        title="Saved looks"
-        subtitle="Your favorited AI outfit recommendations"
-        rightAction="profile"
-        profileImage={require('../../../assets/lucu1.jpg')}
-        onProfilePress={() => router.push('/dashboard/profile')}
-        
-      />
 
       <View className="flex-1 items-center justify-center px-6">
         <Text className="mb-4 text-3xl font-bold text-gray-800">
