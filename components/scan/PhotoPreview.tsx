@@ -22,7 +22,7 @@ export default function PhotoPreview({
   onHelpPress,
 }: PhotoPreviewProps) {
   return (
-    <View className="flex-1 bg-white p-6 mt-6 rounded-lg">
+    <View className="flex-1 bg-white p-6 rounded-lg">
       <View className="flex-row items-start justify-between mb-6">
         <View className="flex-1">
           <Text className="text-xl font-semibold text-gray-900">{title}</Text>

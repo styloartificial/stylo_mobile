@@ -1,179 +1,97 @@
-import { View, ScrollView } from 'react-native';
+// src/app/scan/index.tsx
 import { useState } from 'react';
-import TipsRecommendation from 'components/scan/TipsRecomendation';
-import NextStepButton from 'components/scan/NextStepButton';
-import TextInputWithLabel from 'components/scan/TextInputwithLabel';
-import CustomRadioInput, {CustomRadioButtonType,} from 'components/scan/CustomRadioInput';
-import GenerationSteps, { GenerationStep } from 'components/scan/GenerationSteps';
-import SessionInfo from 'components/scan/SessionInfo';
-import OutfitCard from 'components/scan/OutfitCard';
-import ProductCard from 'components/global/ProductCard';
-import PhotoPreview from 'components/scan/PhotoPreview';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import Step1 from './Step1';
+import Step2 from './Step2';
 
+// import Step4 from './step4';
 
-export default function ScanScreen() {
-  const [lookTitle, setLookTitle] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([
-    'outerwear',
-  ]);
+type ScanStep = 1 | 2 | 3 | 4;
 
-  const handleProductPress = () => {
-    console.log('product pressed!');
+type StepConfig = {
+  title: string;
+  description: string;
+};
+
+export default function ScanPage() {
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState<ScanStep>(1);
+
+  const [formData, setFormData] = useState({
+    image: '',
+    lookTitle: '',
+    selectedCategories: [] as string[],
+    occasion: '',
+    style: '',
+    detectedItems: [],
+    selectedProducts: [],
+  });
+
+  const updateFormData = (data: Partial<typeof formData>) => {
+    setFormData(prev => ({ ...prev, ...data }));
   };
 
-  const categories: CustomRadioButtonType[] = [
-    { id: 'outerwear', value: 'Outerwear', icon: 'shirt-outline' },
-    { id: 'footwear', value: 'Footwear', icon: 'footsteps-outline' },
-    { id: 'dress', value: 'Dress', icon: 'woman-outline' },
-    { id: 'work', value: 'Work', icon: 'briefcase-outline' },
-    { id: 'date', value: 'Date', icon: 'heart-outline' },
-    { id: 'party', value: 'Party', icon: 'wine-outline' },
-  ];
+  const stepConfigMap: Record<ScanStep, StepConfig> = {
+    1: {
+      title: 'Scan your outfit',
+      description: 'Use a clear full-body photo for best results.',
+    },
+    2: {
+      title: 'Describe your style',
+      description: 'Tell us about the occasion and your style preferences.',
+    },
+    3: {
+      title: 'Generating recommendations',
+      description: 'AI is analyzing your style and finding similar items.',
+    },
+    4: {
+      title: 'Your recommendations',
+      description: 'Browse items that match your style from trusted sellers.',
+    },
+  };
 
-  const steps: GenerationStep[] = [
-    {
-      id: 1,
-      title: 'Creating a prompt',
-      description: 'Merged your occasion, style tags, and preferences into an AI prompt.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 2,
-      title: 'Submitting the prompt',
-      description: 'Sent the formatted prompt securely to the Stylo AI model.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 3,
-      title: 'Getting result from prompt',
-      description: 'Received your outfit idea and item breakdown from the model.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 4,
-      title: 'Getting data for scraping',
-      description: 'Converted each outfit item into search-ready product keywords.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 5,
-      title: 'Requesting data in scrap queue',
-      description: 'Queued product searches with partnered marketplaces.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 6,
-      title: 'Getting the scrap result',
-      description: 'Matched outfit items with real products, prices, and ratings.',
-      status: 'done',
-      timestamp: 'Just now',
-    },
-    {
-      id: 7,
-      title: 'Successful generation',
-      description: 'Your AI outfit and shoppable items are ready to preview.',
-      status: 'ready',
-      timestamp: 'Just now',
-    },
-
-  
-  ];
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as ScanStep);
+    } else {
+      router.back();
+    }
+  };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View className='px-6'>
-          <PhotoPreview
-              onCameraPress={() => {
-                console.log('Camera pressed');
-              }}
-              onGalleryPress={() => {
-                console.log('Gallery pressed');
-              }}
-              onHelpPress={() => {
-                console.log('Help pressed');
-              }}
-            />
-          </View>
-        <View className="p-6">
-          <TipsRecommendation />
-        </View>
-
-        <View className="px-6">
-          <TextInputWithLabel
-            title="Title this look"
-            description="Add a short name so you can find it easily later."
-            label="Look title"
-            placeholder='e.g. "Friday date night"'
-            value={lookTitle}
-            onChangeText={setLookTitle}
+    <>
+    
+      <View className="flex-1">
+        {currentStep === 1 && (
+          <Step1
+            image={formData.image}
+            updateFormData={updateFormData}
+            onNext={() => setCurrentStep(2)}
           />
-        </View>
+        )}
 
-        <View className='px-6'>
-          <CustomRadioInput
-            title="What should we focus on"
-            description="Pick one or more categories to guide the recommendations"
-            label="Categories"
-            items={categories}
-            value={selectedCategories}
-            onValueChange={setSelectedCategories}
-            multiSelect
+         {currentStep === 2 && (
+          <Step2
+            image={formData.image}
+            lookTitle={formData.lookTitle}
+            selectedCategories={formData.selectedCategories}
+            updateFormData={updateFormData}
+            onNext={() => setCurrentStep(3)}
+            onBack={() => setCurrentStep(1)}
           />
-        </View>
+        )}
+{/* 
+        <Step3
+          onNext={() => setCurrentStep(4)}
+          onBack={() => setCurrentStep(2)}
+        /> */}
 
-        <View className='p-6'>
-          <GenerationSteps data={steps}/>
-        </View>
+   
 
-        <View className='px-6'>
-          <SessionInfo
-            sessionId="#STY-2406-18"
-            totalSteps={7}
-            completedSteps={7}
-            elapsedTime="3.2 seconds"
-            status="completed"
-          />
-        </View>
-
-        <View className='px-6'>
-          <OutfitCard
-            title="Soft neutral date night look"
-            subtitle="Generated by Style AI · Look 1 of 5"
-            description="Cream knit top with tailored black trousers, layered with a light trench and clean white sneakers. Balanced, polished, and comfortable for an indoor dinner date."
-            onSaveOutfit={() => {
-              console.log('Save outfit');
-            }}
-            onSaveItems={() => {
-              console.log('Save single items');
-            }}
-          />
-
-        </View>
-
-        <View className="px-6">
-          <ProductCard
-            imageUrl="https://example.com/product.jpg"
-            title="Cream ribbed knit long-sleeve top"
-            rating={4.8}
-            price={189000}
-            buyerCount={1200}
-            onPressProduct={handleProductPress}
-          />
       </View>
-      </ScrollView>
 
-      <NextStepButton
-        promptText="Next: describe your occasion and style"
-        buttonText="Continue"
-        buttonIcon="sparkles"
-        onPress={() => console.log(selectedCategories)}
-      />
-    </View>
+    </>
   );
 }
