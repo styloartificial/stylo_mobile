@@ -1,12 +1,14 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { ImageSourcePropType } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 type RightActionType = 'profile' | 'notification' | 'icon' | 'both';
 
 interface CustomHeaderProps {
   title: string;
   subtitle?: string;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
   rightAction?: RightActionType;
   profileImage?: ImageSourcePropType;
   iconName?: keyof typeof Ionicons.glyphMap;
@@ -20,7 +22,9 @@ interface CustomHeaderProps {
 export default function CustomHeader({
   title,
   subtitle,
-  rightAction = 'notification',
+  showBackButton = false,
+  onBackPress,
+  rightAction,
   profileImage,
   iconName = 'notifications-outline',
   iconSize = 24,
@@ -29,6 +33,10 @@ export default function CustomHeader({
   onNotificationPress,
   onIconPress,
 }: CustomHeaderProps) {
+  const handleBackPress = () => {
+    onBackPress?.();
+  };
+
   const renderProfileImage = () => {
     if (profileImage) {
       return (
@@ -39,11 +47,6 @@ export default function CustomHeader({
       );
     }
 
-    return (
-      <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center">
-        <Ionicons name="person" size={20} color="#6B7280" />
-      </View>
-    );
   };
 
   const renderRightAction = () => {
@@ -53,27 +56,35 @@ export default function CustomHeader({
           <TouchableOpacity onPress={onProfilePress}>
             {renderProfileImage()}
           </TouchableOpacity>
-        );
-
-      case 'icon':
-        return (
-          <TouchableOpacity className="p-2" onPress={onIconPress}>
-            <Ionicons name={iconName} size={iconSize} color={iconColor} />
-          </TouchableOpacity>
-        );
-
-      default:
-        return null;
+        );      
     }
   };
 
   return (
-    <View className="px-6 py-4 flex-row items-center justify-between border-b border-gray-200 bg-white">
+    <View className="px-6 py-4 flex-row items-center border-b border-gray-200 bg-white">
+      {showBackButton && (
+        <TouchableOpacity
+          onPress={handleBackPress}
+          className="mr-3 p-2 rounded-full bg-gray-100"
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="chevron-back"
+            size={22}
+            color="#374151"
+          />
+        </TouchableOpacity>
+      )}
 
       <View className="flex-1">
-        <Text className="text-xl font-bold text-gray-800">{title}</Text>
+        <Text className="text-xl font-bold text-gray-800">
+          {title}
+        </Text>
+
         {subtitle && (
-          <Text className="text-sm text-gray-500 mt-0.5">{subtitle}</Text>
+          <Text className="text-sm text-gray-500 mt-0.5">
+            {subtitle}
+          </Text>
         )}
       </View>
 

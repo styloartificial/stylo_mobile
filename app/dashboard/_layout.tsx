@@ -102,7 +102,7 @@ export default function DashboardLayout() {
           }}
         />
         <Tabs.Screen
-          name="scan/index"
+          name="scan"
           options={{
             title: 'Scan',
             tabBarIcon: ({ color, size, focused }) => (

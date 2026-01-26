@@ -1,6 +1,5 @@
 import { View, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 export type StepStatus = 'pending' | 'done' | 'ready' | 'error';
 
 export type GenerationStep = {
@@ -87,9 +86,7 @@ const GenerationSteps: React.FC<GenerationStepsProps> = ({
             {completedSteps} of {totalSteps} steps
           </Text>
         </View>
-
-      
-
+  
       {/* Steps List */}
       <ScrollView className="max-h-124">
         {data.map((step, index) => (
