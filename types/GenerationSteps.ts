@@ -7,3 +7,18 @@ export type GenerationStep = {
   status: StepStatus;
   timestamp?: string;
 };
+
+export type SavedTag = {
+  id: string;
+  label: string;
+};
+
+export type SavedItem = {
+  id: string;
+  type: 'outfit' | 'single';
+  title: string;
+  imageUrl: string;
+  date: string;
+  category: string;
+  tags: SavedTag[];
+};

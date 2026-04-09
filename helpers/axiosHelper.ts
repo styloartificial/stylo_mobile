@@ -2,7 +2,8 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+// const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+const apiUrl = "http://10.67.68.71/api"; 
 
 const getToken = async (): Promise<string | null> => {
   if (Platform.OS === 'web') {

@@ -25,7 +25,7 @@ export default function DashboardLayout() {
     { title: string; subtitle: string }
   > = {
     home: {
-      title: 'Hello, Gilang',
+      title: 'Hello, Tiara',
       subtitle: 'Ready to style your day?',
     },
     scan: {
