@@ -21,4 +21,6 @@ export type SavedItem = {
   date: string;
   category: string;
   tags: SavedTag[];
+  outfitId?: string;
+  
 };

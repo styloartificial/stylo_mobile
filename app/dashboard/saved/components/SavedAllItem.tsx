@@ -90,7 +90,7 @@ const SavedAllItem: React.FC = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8F8F8] px-6 pt-4">
+    <View className="flex-1 bg-[#F8F8F8] px-6 pt-2">
 
       {/* Counter */}
       {filteredItems.length > 0 && (
@@ -99,7 +99,7 @@ const SavedAllItem: React.FC = () => {
         </Text>
       )}
       {/* Tab Toggle */}
-      <View className="flex-row bg-[#F1F5F7] rounded-full p-1 self-start mb-4">
+      <View className="flex-row bg-[#F1F5F7] rounded-full self-start mb-4">
         {(['outfits', 'single'] as TabType[]).map((tab) => (
           <TouchableOpacity
             key={tab}

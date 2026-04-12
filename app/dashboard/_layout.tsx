@@ -1,9 +1,34 @@
 import { Tabs, Redirect, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import storageHelper from 'helpers/storageHelper';
 import CustomHeader from 'components/global/CustomHeader';
+
+type DashboardTab = 'home' | 'scan' | 'saved' | 'profile';
+
+const DashboardHeaderMap: Record<DashboardTab, { title: string; subtitle: string }> = {
+  home: {
+    title: 'Hello, Tiara',
+    subtitle: 'Ready to style your day?',
+  },
+  scan: {
+    title: 'Scan Outfit',
+    subtitle: 'Let AI analyze your style',
+  },
+  saved: {
+    title: 'Saved looks',
+    subtitle: 'Your favorited AI outfit recommendations',
+  },
+  profile: {
+    title: 'Your Profile',
+    subtitle: 'Manage your account',
+  },
+};
+
+const isDashboardTab = (tab: string): tab is DashboardTab => {
+  return tab in DashboardHeaderMap;
+};
 
 export default function DashboardLayout() {
   const router = useRouter();
@@ -18,33 +43,6 @@ export default function DashboardLayout() {
     check();
   }, []);
 
-  type DashboardTab = 'home' | 'scan' | 'saved' | 'profile';
-
-  const DashboardHeaderMap: Record<
-    DashboardTab,
-    { title: string; subtitle: string }
-  > = {
-    home: {
-      title: 'Hello, Tiara',
-      subtitle: 'Ready to style your day?',
-    },
-    scan: {
-      title: 'Scan Outfit',
-      subtitle: 'Let AI analyze your style',
-    },
-    saved: {
-      title: 'Saved looks',
-      subtitle: 'Your favorited AI outfit recommendations',
-    },
-    profile: {
-      title: 'Your Profile',
-      subtitle: 'Manage your account',
-    },
-  };
-
-  const isDashboardTab = (tab: string): tab is DashboardTab => {
-    return tab in DashboardHeaderMap;
-  };
 
   const activeTab = segments[segments.length - 1];
   const headerConfig = isDashboardTab(activeTab)
@@ -58,7 +56,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <SafeAreaView edges={['top','bottom','right', 'left']} className="flex-1 bg-white">
+    <SafeAreaView edges={['top', 'bottom', 'right', 'left']} className="flex-1 bg-white">
       {headerConfig && (
         <CustomHeader
           title={headerConfig.title}
@@ -115,7 +113,7 @@ export default function DashboardLayout() {
           }}
         />
         <Tabs.Screen
-          name="saved/index"
+          name="saved"
           options={{
             title: 'Saved',
             tabBarIcon: ({ color, size, focused }) => (
@@ -140,6 +138,8 @@ export default function DashboardLayout() {
             ),
           }}
         />
+
+        
       </Tabs>
     </SafeAreaView>
   );
