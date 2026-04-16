@@ -223,38 +223,8 @@ export default function OutfitDetailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#F5F5F7]">
-      <StatusBar barStyle="dark-content" />
+    <View className="flex-1 bg-[#F5F5F7] px-6">
 
-      {/* ── Header bar ── */}
-      <View
-        className="flex-row items-center px-4 bg-white border-b border-gray-100"
-        style={{ paddingTop: Platform.OS === 'ios' ? 52 : 16, paddingBottom: 12 }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center mr-3"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="chevron-back" size={20} color="#111" />
-        </TouchableOpacity>
-
-        <View className="flex-1">
-          <Text className="text-base font-bold text-gray-900" numberOfLines={1}>
-            {outfit.title}
-          </Text>
-          <Text className="text-xs text-gray-400 mt-0.5" numberOfLines={1}>
-            {outfit.generatedBy}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center ml-2"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="share-social-outline" size={18} color="#111" />
-        </TouchableOpacity>
-      </View>
 
       {/* ── Scrollable body ── */}
       <ScrollView
@@ -262,7 +232,7 @@ export default function OutfitDetailScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Style badge + date */}
-        <View className="flex-row items-center justify-between px-4 pt-4 pb-2 bg-white">
+        <View className="flex-row items-center justify-between px-6 pt-4 pb-2 bg-white">
           <StyleBadge label={outfit.style} />
           <View className="flex-row items-center gap-1">
             <Ionicons name="time-outline" size={13} color="#9ca3af" />
@@ -273,51 +243,62 @@ export default function OutfitDetailScreen() {
         {/* ── Image Carousel ── */}
         <View className="bg-white pb-4">
           <View className="mx-4 bg-gray-100 rounded-2xl overflow-hidden">
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleImageScroll}
-              scrollEventThrottle={16}
-            >
-              {outfit.looks.map((look) => (
-                <View key={look.id} style={{ width: width - 32 }}>
-                  <Image
-                    source={{ uri: look.imageUrl }}
-                    style={{ width: '100%', height: IMAGE_HEIGHT }}
-                    resizeMode="cover"
-                  />
-                  {/* Look label */}
-                  <View className="absolute bottom-3 left-3 flex-row items-center gap-1.5">
-                    <View className="bg-black/40 px-2.5 py-1 rounded-full flex-row items-center gap-1">
-                      <Text className="text-xs text-white font-medium">{look.label}</Text>
-                      {look.isAiGenerated && (
-                        <View className="flex-row items-center gap-0.5">
-                          <Text className="text-gray-300 text-xs">·</Text>
-                          <Ionicons name="sparkles" size={10} color="#c4b5fd" />
-                          <Text className="text-xs text-purple-200 font-medium">AI generated</Text>
-                        </View>
-                      )}
+            {/* ── Image Carousel ── */}
+            <View className="bg-white pb-4">
+              <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleImageScroll}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+                decelerationRate="fast"
+                snapToInterval={width - 32 + 12} // lebar card + gap
+                snapToAlignment="start"
+              >
+                {outfit.looks.map((look) => (
+                  <View
+                    key={look.id}
+                    style={{ width: width - 64 }} // lebih kecil dari layar agar card berikutnya "ngintip"
+                    className="bg-gray-100 rounded-2xl overflow-hidden"
+                  >
+                    <Image
+                      source={{ uri: look.imageUrl }}
+                      style={{ width: '100%', height: IMAGE_HEIGHT }}
+                      resizeMode="cover"
+                    />
+                    {/* Look label */}
+                    <View className="absolute bottom-3 left-3 flex-row items-center gap-1.5">
+                      <View className="bg-black/40 px-2.5 py-1 rounded-full flex-row items-center gap-1">
+                        <Text className="text-xs text-white font-medium">{look.label}</Text>
+                        {look.isAiGenerated && (
+                          <View className="flex-row items-center gap-0.5">
+                            <Text className="text-gray-300 text-xs">·</Text>
+                            <Ionicons name="sparkles" size={10} color="#c4b5fd" />
+                            <Text className="text-xs text-purple-200 font-medium">AI generated</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))}
-            </ScrollView>
+                ))}
+              </ScrollView>
 
-            {/* Dots */}
-            <View className="flex-row justify-center gap-2 py-3">
-              {outfit.looks.map((_, i) => (
-                <View
-                  key={i}
-                  style={{
-                    width: i === activeIndex ? 24 : 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: i === activeIndex ? '#7C3AED' : '#d1d5db',
-                  }}
-                />
-              ))}
+              {/* Dots */}
+              <View className="flex-row justify-center gap-2 py-3">
+                {outfit.looks.map((_, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      width: i === activeIndex ? 24 : 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: i === activeIndex ? '#7C3AED' : '#d1d5db',
+                    }}
+                  />
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -358,29 +339,6 @@ export default function OutfitDetailScreen() {
           </View>
         </View>
 
-        {/* ── Action buttons ── */}
-        <View className="flex-row gap-3 mx-4 mt-3">
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 bg-white border border-gray-200 rounded-xl py-3"
-            activeOpacity={0.8}
-          >
-            <Ionicons name="bookmark-outline" size={16} color="#7C3AED" />
-            <Text className="text-sm font-semibold text-[#7C3AED]">Save outfit</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="flex-1 flex-row items-center justify-center gap-2 bg-white border border-gray-200 rounded-xl py-3"
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add-circle-outline" size={16} color="#7C3AED" />
-            <Text className="text-sm font-semibold text-[#7C3AED]">Single items</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text className="text-xs text-gray-400 mx-4 mt-2">
-          Save this full look to Saved looks, or bookmark individual pieces to your single items.
-        </Text>
-
         {/* ── Products ── */}
         <View className="mx-4 mt-5">
           <View className="flex-row items-center justify-between mb-3">
@@ -402,21 +360,7 @@ export default function OutfitDetailScreen() {
       </ScrollView>
 
       {/* ── Sticky bottom CTA ── */}
-      <View
-        className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4"
-        style={{ paddingBottom: Platform.OS === 'ios' ? 34 : 16, paddingTop: 12 }}
-      >
-        <TouchableOpacity
-          className="flex-row items-center justify-center gap-2 bg-[#EE4D2D] rounded-2xl py-3.5"
-          activeOpacity={0.85}
-        >
-          <Ionicons name="cart-outline" size={18} color="#fff" />
-          <Text className="text-sm font-bold text-white">Checkout on Shopee</Text>
-        </TouchableOpacity>
-        <Text className="text-xs text-center text-gray-400 mt-2">
-          Buy full look · {outfit.products.length} items
-        </Text>
-      </View>
+      
     </View>
   );
 }

@@ -3,29 +3,36 @@ import { useState } from 'react';
 import PhotoPreview from 'components/scan/PhotoPreview';
 import TipsRecommendation from 'components/scan/TipsRecomendation';
 import NextStepButton from 'components/scan/NextStepButton';
+import { useScan } from '../ScanContexs';
+import { validateImageByGender } from 'services/scanApi';
 
 interface Step1Props {
-  image: string;
-  updateFormData: (data: Partial<{ image: string }>) => void;
   onNext: () => void;
 }
 
-export default function Step1({ image, updateFormData, onNext }: Step1Props) {
+export default function Step1({ onNext }: Step1Props) {
+  const { formData, updateFormData } = useScan();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePhotoSelected = (imageUri: string) => {
     updateFormData({ image: imageUri });
-    console.log('Photo selected:', imageUri);
   };
 
   const handleContinue = async () => {
+    if (!formData.image) return;
     setIsProcessing(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const isValid = await validateImageByGender(formData.image);
+      if (!isValid) {
+        Alert.alert(
+          'Foto tidak sesuai',
+          'Pastikan foto menampilkan orang dengan gender yang sesuai profil kamu.'
+        );
+        return;
+      }
       onNext();
     } catch (error) {
-      console.error('Error processing image:', error);
-      Alert.alert('Error', 'Failed to process. Please try again.');
+      Alert.alert('Error', 'Gagal memvalidasi foto. Coba lagi.');
     } finally {
       setIsProcessing(false);
     }
@@ -42,18 +49,17 @@ export default function Step1({ image, updateFormData, onNext }: Step1Props) {
             onPhotoSelected={handlePhotoSelected}
           />
         </View>
-
         <View className="p-6">
           <TipsRecommendation />
         </View>
       </ScrollView>
 
       <NextStepButton
-        promptText="Next: AI will generate your outfit recommendations"
-        buttonText="Continue"
+        promptText="Next: AI will validate your photo"
+        buttonText={isProcessing ? 'Validating...' : 'Continue'}
         buttonIcon="sparkles"
         onPress={handleContinue}
-        disabled={isProcessing || !image}
+        disabled={isProcessing || !formData.image}
       />
     </View>
   );
