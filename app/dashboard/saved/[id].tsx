@@ -254,13 +254,13 @@ export default function OutfitDetailScreen() {
                 scrollEventThrottle={16}
                 contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
                 decelerationRate="fast"
-                snapToInterval={width - 32 + 12} // lebar card + gap
+                snapToInterval={width - 32 + 12} 
                 snapToAlignment="start"
               >
                 {outfit.looks.map((look) => (
                   <View
                     key={look.id}
-                    style={{ width: width - 64 }} // lebih kecil dari layar agar card berikutnya "ngintip"
+                    style={{ width: width - 64 }} 
                     className="bg-gray-100 rounded-2xl overflow-hidden"
                   >
                     <Image

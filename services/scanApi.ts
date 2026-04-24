@@ -1,53 +1,95 @@
 import axiosInstance from '../helpers/axiosHelper';
 
+// ============================================================
+// TYPES
+// ============================================================
+
+export type ScanCategory = {
+  id: number;
+  title: string;
+  icon: string;
+  type: 'item' | 'occasion' | 'style' | 'hijab';
+};
+
+export type ScanCategoriesGrouped = {
+  item: ScanCategory[];
+  occasion: ScanCategory[];
+  style: ScanCategory[];
+  hijab: ScanCategory[];
+};
+
+export type SelectedCategoryPayload = {
+  item: number[];
+  occasion: number[];
+  style: number[];
+  hijab: number[];
+};
+
+// ============================================================
+// VALIDATE IMAGE
+// ============================================================
+
 export const validateImageByGender = async (imageUri: string): Promise<boolean> => {
-  try {
-    const formData = new FormData();
-    formData.append('img_url', {
-      uri: imageUri,
-      type: 'image/jpeg',
-      name: 'outfit.jpg',
-    } as any);
+  const formData = new FormData();
+  formData.append('img_url', {
+    uri: imageUri,
+    type: 'image/jpeg',
+    name: 'outfit.jpg',
+  } as any);
 
-    console.log('=== VALIDATE IMAGE ===');
-    console.log('URI:', imageUri);
-
-    const res = await axiosInstance.post(
-      '/core/validate-image-by-profile-gender',
-      formData
-    );
-
-    console.log('SUCCESS:', JSON.stringify(res.data));
-    return res.data.data as boolean;
-
-  } catch (error: any) {
-    console.log('=== ERROR ===');
-    console.log('STATUS:', error?.response?.status);
-    console.log('DATA:', JSON.stringify(error?.response?.data));
-    console.log('HEADERS SENT:', JSON.stringify(error?.config?.headers));
-    console.log('NETWORK ERROR:', error?.message);
-    throw error;
-  }
+  const res = await axiosInstance.post('/core/validate-image-by-profile-gender', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    timeout: 60000,
+  });
+  return res.data.data as boolean;
 };
+// ============================================================
+// GET SCAN CATEGORIES
+// ============================================================
 
-export const getScanCategories = async () => {
+export const getScanCategories = async (): Promise<ScanCategoriesGrouped> => {
   const res = await axiosInstance.get('/core/master/scan-categories');
-  return res.data.data as { id: number; title: string; icon: string }[];
+  const all: ScanCategory[] = res.data.data;
+  
+  console.log('=== SCAN CATEGORIES ===');
+  console.log('RAW:', JSON.stringify(all));
+  
+  return {
+    item:     all.filter(c => c.type === 'item'),
+    occasion: all.filter(c => c.type === 'occasion'),
+    style:    all.filter(c => c.type === 'style'),
+    hijab:    all.filter(c => c.type === 'hijab'),
+  };
 };
+
+// ============================================================
+// OPEN TICKET
+// ============================================================
 
 export const openTicket = async (params: {
   imageUri: string;
   title: string;
-  scanCategoryId: number;
+  scanCategoryId: SelectedCategoryPayload;
 }): Promise<{ ticket_id: string }> => {
   const formData = new FormData();
+
   formData.append('img_url', {
     uri: params.imageUri,
     type: 'image/jpeg',
     name: 'outfit.jpg',
   } as any);
+
   formData.append('title', params.title);
-  formData.append('scan_category_id', String(params.scanCategoryId));
+
+  // Append nested array: scan_category_id[item][], scan_category_id[occasion][], dst
+  const types = ['item', 'occasion', 'style', 'hijab'] as const;
+  types.forEach(type => {
+    params.scanCategoryId[type].forEach(id => {
+      formData.append(`scan_category_id[${type}][]`, String(id));
+    });
+  });
 
   const res = await axiosInstance.post('/core/open-ticket', formData);
   return res.data.data;

@@ -5,51 +5,70 @@ import CustomRadioInput, { CustomRadioButtonType } from 'components/scan/CustomR
 import NextStepButton from 'components/scan/NextStepButton';
 import CustomHeader from 'components/global/CustomHeader';
 import { useScan } from '../ScanContexs';
-import { getScanCategories, openTicket } from 'services/scanApi';
+import { getScanCategories, ScanCategoriesGrouped, openTicket } from 'services/scanApi';
+import { SelectedCategories } from '../ScanContexs';
 
 interface Step2Props {
   onNext: () => void;
   onBack: () => void;
 }
 
+const EMPTY_CATEGORIES = { item: [], occasion: [], style: [], hijab: [] };
+
+const toRadioItems = (cats: ScanCategoriesGrouped[keyof ScanCategoriesGrouped]): CustomRadioButtonType[] =>
+  (cats ?? []).map(cat => ({
+    id: String(cat.id),
+    value: cat.title,
+    icon: (cat.icon ?? 'shirt-outline') as any,
+  }));
+
 export default function Step2({ onNext, onBack }: Step2Props) {
   const { formData, updateFormData } = useScan();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [categories, setCategories] = useState<CustomRadioButtonType[]>([]);
+  const [groupedCategories, setGroupedCategories] = useState<ScanCategoriesGrouped>({
+    item: [], occasion: [], style: [], hijab: [],
+  });
+
+  const selected: SelectedCategories = formData.selectedCategories ?? EMPTY_CATEGORIES;
 
   useEffect(() => {
     getScanCategories()
-      .then(data => {
-        setCategories(
-          data.map(cat => ({
-            id: String(cat.id),
-            value: cat.title,
-            icon: (cat.icon ?? 'shirt-outline') as any,
-          }))
-        );
-      })
+      .then(setGroupedCategories)
       .catch(() => Alert.alert('Error', 'Gagal memuat kategori.'));
   }, []);
+
+  const updateCategory = (type: keyof SelectedCategories, vals: string[]) => {
+    updateFormData({
+      selectedCategories: {
+        ...(formData.selectedCategories ?? EMPTY_CATEGORIES),
+        [type]: vals.map(Number),
+      },
+    });
+  };
 
   const handleContinue = async () => {
     if (!formData.lookTitle.trim()) {
       Alert.alert('Wajib diisi', 'Masukkan judul untuk look kamu.');
       return;
     }
-    if (formData.selectedCategories.length === 0) {
+
+    const { item, occasion, style, hijab } = selected;
+    const totalSelected = item.length + occasion.length + style.length + hijab.length;
+    if (totalSelected === 0) {
       Alert.alert('Wajib diisi', 'Pilih minimal satu kategori.');
       return;
     }
+
     setIsProcessing(true);
     try {
       const { ticket_id } = await openTicket({
         imageUri: formData.image,
         title: formData.lookTitle,
-        scanCategoryId: formData.selectedCategories[0],
+        scanCategoryId: selected,
       });
       updateFormData({ ticketId: ticket_id });
       onNext();
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Gagal membuat tiket. Coba lagi.');
     } finally {
       setIsProcessing(false);
@@ -68,27 +87,63 @@ export default function Step2({ onNext, onBack }: Step2Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <View className="px-6 pt-2">
-          <TextInputWithLabel
-            title="Title this look"
-            description="Add a short name so you can find it easily later."
-            label="Look title"
-            placeholder='e.g. "Friday date night", "Office casual",...'
-            value={formData.lookTitle}
-            onChangeText={text => updateFormData({ lookTitle: text })}
+
+        <View className="px-6 mt-4">
+          <CustomRadioInput
+            title="Item"
+            description="Pilih item pakaian yang ingin difokuskan."
+            label="Item"
+            items={toRadioItems(groupedCategories.item)}
+            value={selected.item?.map(String) ?? []}
+            onValueChange={vals => updateCategory('item', vals)}
+            multiSelect
           />
         </View>
-        <View className="px-6">
+
+        <View className="px-6 mt-4">
           <CustomRadioInput
-            title="What should we focus on?"
-            description="Pick one or more categories."
-            label="Categories"
-            items={categories}
-            value={formData.selectedCategories.map(String)}
-            onValueChange={vals =>
-              updateFormData({ selectedCategories: vals.map(Number) })
-            }
+            title="Occasion"
+            description="Mau dipakai ke acara apa?"
+            label="Occasion"
+            items={toRadioItems(groupedCategories.occasion)}
+            value={selected.occasion?.map(String) ?? []}
+            onValueChange={vals => updateCategory('occasion', vals)}
             multiSelect
+          />
+        </View>
+
+        <View className="px-6 mt-4">
+          <CustomRadioInput
+            title="Style"
+            description="Gaya yang kamu suka?"
+            label="Style"
+            items={toRadioItems(groupedCategories.style)}
+            value={selected.style?.map(String) ?? []}
+            onValueChange={vals => updateCategory('style', vals)}
+            multiSelect
+          />
+        </View>
+
+        <View className="px-6 mt-4">
+          <CustomRadioInput
+            title="Hijab"
+            description="Apakah kamu memakai hijab?"
+            label="Hijab"
+            items={toRadioItems(groupedCategories.hijab)}
+            value={selected.hijab?.map(String) ?? []}
+            onValueChange={vals => updateCategory('hijab', vals)}
+            multiSelect
+          />
+        </View>
+
+        <View className="px-6 pt-4">
+          <TextInputWithLabel
+            title="Detail Outfit"
+            description="Masukkan detail outfit yang anda inginkan."
+            label="Detail Outfit"
+            placeholder='e.g. "Hijab yang bagus untuk baju gamis warna merah"'
+            value={formData.lookTitle}
+            onChangeText={text => updateFormData({ lookTitle: text })}
           />
         </View>
       </ScrollView>

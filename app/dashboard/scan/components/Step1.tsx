@@ -19,24 +19,30 @@ export default function Step1({ onNext }: Step1Props) {
   };
 
   const handleContinue = async () => {
-    if (!formData.image) return;
-    setIsProcessing(true);
-    try {
-      const isValid = await validateImageByGender(formData.image);
-      if (!isValid) {
-        Alert.alert(
-          'Foto tidak sesuai',
-          'Pastikan foto menampilkan orang dengan gender yang sesuai profil kamu.'
-        );
-        return;
-      }
-      onNext();
-    } catch (error) {
-      Alert.alert('Error', 'Gagal memvalidasi foto. Coba lagi.');
-    } finally {
-      setIsProcessing(false);
+  if (!formData.image) return;
+  
+  console.log('=== IMAGE URI ===');
+  console.log(formData.image);
+  
+  setIsProcessing(true);
+  try {
+    const isValid = await validateImageByGender(formData.image);
+    console.log('=== VALID ===', isValid);
+    if (!isValid) {
+      Alert.alert(
+        'Foto tidak sesuai',
+        'Pastikan foto menampilkan orang dengan gender yang sesuai profil kamu.'
+      );
+      return;
     }
-  };
+    onNext();
+  } catch (error) {
+    console.log('=== ERROR VALIDASI ===', error);
+    Alert.alert('Error', 'Gagal memvalidasi foto. Coba lagi.');
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   return (
     <View className="flex-1 bg-gray-100">

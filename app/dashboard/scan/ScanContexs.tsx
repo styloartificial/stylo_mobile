@@ -1,11 +1,17 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { getScanCategories, ScanCategoriesGrouped } from 'services/scanApi';
+
+export type SelectedCategories = {
+  item: number[];
+  occasion: number[];
+  style: number[];
+  hijab: number[];
+};
 
 export type ScanFormData = {
   image: string;
   lookTitle: string;
-  selectedCategories: number[];
-  occasion: string;
-  style: string;
+  selectedCategories: SelectedCategories;
   detectedItems: any[];
   selectedProducts: any[];
   ticketId: string;
@@ -14,6 +20,8 @@ export type ScanFormData = {
 type ScanContextType = {
   formData: ScanFormData;
   updateFormData: (data: Partial<ScanFormData>) => void;
+  categories: ScanCategoriesGrouped;
+  isLoadingCategories: boolean;
 };
 
 export const ScanContext = createContext<ScanContextType | null>(null);
@@ -22,20 +30,35 @@ export const ScanProvider = ({ children }: { children: React.ReactNode }) => {
   const [formData, setFormData] = useState<ScanFormData>({
     image: '',
     lookTitle: '',
-    selectedCategories: [],
-    occasion: '',
-    style: '',
+    selectedCategories: {
+      item: [],
+      occasion: [],
+      style: [],
+      hijab: [],
+    },
     detectedItems: [],
     selectedProducts: [],
     ticketId: '',
   });
+
+  const [categories, setCategories] = useState<ScanCategoriesGrouped>({
+    item: [], occasion: [], style: [], hijab: [],
+  });
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    getScanCategories()
+      .then(setCategories)
+      .catch(() => {})
+      .finally(() => setIsLoadingCategories(false));
+  }, []);
 
   const updateFormData = (data: Partial<ScanFormData>) => {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
   return (
-    <ScanContext.Provider value={{ formData, updateFormData }}>
+    <ScanContext.Provider value={{ formData, updateFormData, categories, isLoadingCategories }}>
       {children}
     </ScanContext.Provider>
   );

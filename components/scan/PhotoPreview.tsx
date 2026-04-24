@@ -34,7 +34,7 @@ export default function PhotoPreview({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [3, 4],
-      quality: 0.8,
+      quality: 1, // maksimal
     });
 
     console.log(result);
@@ -60,7 +60,7 @@ export default function PhotoPreview({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [3, 4],
-      quality: 0.8,
+      quality: 1, // maksimal
     });
 
     console.log(result);
