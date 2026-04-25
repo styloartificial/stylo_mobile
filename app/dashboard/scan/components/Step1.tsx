@@ -14,14 +14,14 @@ export default function Step1({ onNext }: Step1Props) {
   const { formData, updateFormData } = useScan();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handlePhotoSelected = (imageUri: string) => {
-    updateFormData({ image: imageUri });
+  const handlePhotoSelected = (imageObj: { uri: string; type: string; name: string }) => {
+    updateFormData({ image: imageObj });
   };
 
   const handleContinue = async () => {
   if (!formData.image) return;
   
-  console.log('=== IMAGE URI ===');
+  console.log('=== IMAGE OBJ ===');
   console.log(formData.image);
   
   setIsProcessing(true);

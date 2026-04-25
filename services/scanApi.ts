@@ -29,17 +29,17 @@ export type SelectedCategoryPayload = {
 // VALIDATE IMAGE
 // ============================================================
 
-export const validateImageByGender = async (imageUri: string): Promise<boolean> => {
+export const validateImageByGender = async (imageFile: { uri: string; type: string; name: string }): Promise<boolean> => {
   const formData = new FormData();
-  formData.append('img_url', {
-    uri: imageUri,
-    type: 'image/jpeg',
-    name: 'outfit.jpg',
-  } as any);
+  formData.append('img_url', imageFile as any);
+
+  console.log("Form Data");
+  console.log(formData);
 
   const res = await axiosInstance.post('/core/validate-image-by-profile-gender', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
+      'Accept': 'application/json',
     },
     timeout: 60000,
   });
@@ -52,15 +52,15 @@ export const validateImageByGender = async (imageUri: string): Promise<boolean> 
 export const getScanCategories = async (): Promise<ScanCategoriesGrouped> => {
   const res = await axiosInstance.get('/core/master/scan-categories');
   const all: ScanCategory[] = res.data.data;
-  
+
   console.log('=== SCAN CATEGORIES ===');
   console.log('RAW:', JSON.stringify(all));
-  
+
   return {
-    item:     all.filter(c => c.type === 'item'),
+    item: all.filter(c => c.type === 'item'),
     occasion: all.filter(c => c.type === 'occasion'),
-    style:    all.filter(c => c.type === 'style'),
-    hijab:    all.filter(c => c.type === 'hijab'),
+    style: all.filter(c => c.type === 'style'),
+    hijab: all.filter(c => c.type === 'hijab'),
   };
 };
 
@@ -69,17 +69,13 @@ export const getScanCategories = async (): Promise<ScanCategoriesGrouped> => {
 // ============================================================
 
 export const openTicket = async (params: {
-  imageUri: string;
+  imageFile: { uri: string; type: string; name: string };
   title: string;
   scanCategoryId: SelectedCategoryPayload;
 }): Promise<{ ticket_id: string }> => {
   const formData = new FormData();
 
-  formData.append('img_url', {
-    uri: params.imageUri,
-    type: 'image/jpeg',
-    name: 'outfit.jpg',
-  } as any);
+  formData.append('img_url', params.imageFile as any);
 
   formData.append('title', params.title);
 
@@ -91,6 +87,11 @@ export const openTicket = async (params: {
     });
   });
 
-  const res = await axiosInstance.post('/core/open-ticket', formData);
+  const res = await axiosInstance.post('/core/open-ticket', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'Accept': 'application/json',
+    },
+  });
   return res.data.data;
 };

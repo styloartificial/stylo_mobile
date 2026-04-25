@@ -8,7 +8,7 @@ interface PhotoPreviewProps {
   title?: string;
   subtitle?: string;
   guideText?: string;
-  onPhotoSelected?: (uri: string) => void;
+  onPhotoSelected?: (image: { uri: string; type: string; name: string }) => void;
   onHelpPress?: () => void;
 }
 
@@ -40,9 +40,17 @@ export default function PhotoPreview({
     console.log(result);
 
     if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
+      const asset = result.assets[0];
+      const imageUri = asset.uri;
       setPreviewImage(imageUri);
-      onPhotoSelected?.(imageUri);
+      
+      const fileObj = {
+        uri: imageUri,
+        type: asset.mimeType || 'image/jpeg',
+        name: asset.fileName || imageUri.split('/').pop() || 'photo.jpg',
+      };
+      
+      onPhotoSelected?.(fileObj);
     }
   };
 
@@ -66,9 +74,17 @@ export default function PhotoPreview({
     console.log(result);
 
     if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
+      const asset = result.assets[0];
+      const imageUri = asset.uri;
       setPreviewImage(imageUri);
-      onPhotoSelected?.(imageUri);
+
+      const fileObj = {
+        uri: imageUri,
+        type: asset.mimeType || 'image/jpeg',
+        name: asset.fileName || imageUri.split('/').pop() || 'photo.jpg',
+      };
+
+      onPhotoSelected?.(fileObj);
     }
   };
 

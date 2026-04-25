@@ -62,7 +62,7 @@ export default function Step2({ onNext, onBack }: Step2Props) {
     setIsProcessing(true);
     try {
       const { ticket_id } = await openTicket({
-        imageUri: formData.image,
+        imageFile: formData.image!,
         title: formData.lookTitle,
         scanCategoryId: selected,
       });
