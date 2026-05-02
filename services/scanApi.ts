@@ -71,15 +71,18 @@ export const getScanCategories = async (): Promise<ScanCategoriesGrouped> => {
 export const openTicket = async (params: {
   imageFile: { uri: string; type: string; name: string };
   title: string;
+  outfitDetail?: string; // tambah ini
   scanCategoryId: SelectedCategoryPayload;
 }): Promise<{ ticket_id: string }> => {
   const formData = new FormData();
 
   formData.append('img_url', params.imageFile as any);
-
   formData.append('title', params.title);
+  
+  if (params.outfitDetail) {
+    formData.append('outfit_detail', params.outfitDetail); // tambah ini
+  }
 
-  // Append nested array: scan_category_id[item][], scan_category_id[occasion][], dst
   const types = ['item', 'occasion', 'style', 'hijab'] as const;
   types.forEach(type => {
     params.scanCategoryId[type].forEach(id => {

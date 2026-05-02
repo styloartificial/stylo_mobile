@@ -47,11 +47,7 @@ export default function Step2({ onNext, onBack }: Step2Props) {
   };
 
   const handleContinue = async () => {
-    if (!formData.lookTitle.trim()) {
-      Alert.alert('Wajib diisi', 'Masukkan judul untuk look kamu.');
-      return;
-    }
-
+  
     const { item, occasion, style, hijab } = selected;
     const totalSelected = item.length + occasion.length + style.length + hijab.length;
     if (totalSelected === 0) {
@@ -64,6 +60,7 @@ export default function Step2({ onNext, onBack }: Step2Props) {
       const { ticket_id } = await openTicket({
         imageFile: formData.image!,
         title: formData.lookTitle,
+        outfitDetail: formData.outfitDetail,
         scanCategoryId: selected,
       });
       updateFormData({ ticketId: ticket_id });
@@ -142,8 +139,8 @@ export default function Step2({ onNext, onBack }: Step2Props) {
             description="Masukkan detail outfit yang anda inginkan."
             label="Detail Outfit"
             placeholder='e.g. "Hijab yang bagus untuk baju gamis warna merah"'
-            value={formData.lookTitle}
-            onChangeText={text => updateFormData({ lookTitle: text })}
+            value={formData.outfitDetail}
+            onChangeText={text => updateFormData({ outfitDetail: text })}
           />
         </View>
       </ScrollView>

@@ -21,6 +21,7 @@ interface RegisterRequest {
   height: number;
   weight: number;
   skin_tone_id: number;
+  body_shape_id: number; // ✅ tambah
 }
 
 interface SendOtpRequest {
@@ -29,18 +30,24 @@ interface SendOtpRequest {
 
 interface SubmitTokenRequest {
   email: string;
-  token: string; 
+  token: string;
 }
-
 
 interface ChangePasswordRequest {
   email: string;
-  token: string; 
-  new_password: string; 
-  new_password_confirmation: string; 
+  token: string;
+  new_password: string;
+  new_password_confirmation: string;
 }
 
 interface SkinToneResponse {
+  id: number;
+  title: string;
+  description: string;
+}
+
+// ✅ tambah
+interface BodyShapeResponse {
   id: number;
   title: string;
   description: string;
@@ -74,6 +81,16 @@ export const authService = {
       message: string;
       data: SkinToneResponse[];
     }>('/auth/register/skin-tone');
+    return response;
+  },
+
+  // ✅ tambah
+  getBodyShapes: async () => {
+    const response = await axiosHelper.get<{
+      success: boolean;
+      message: string;
+      data: BodyShapeResponse[];
+    }>('/auth/register/body-shape');
     return response;
   },
 

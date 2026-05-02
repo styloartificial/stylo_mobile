@@ -11,6 +11,7 @@ export type SelectedCategories = {
 export type ScanFormData = {
   image: { uri: string; type: string; name: string } | null;
   lookTitle: string;
+  outfitDetail: string;
   selectedCategories: SelectedCategories;
   detectedItems: any[];
   selectedProducts: any[];
@@ -30,6 +31,7 @@ export const ScanProvider = ({ children }: { children: React.ReactNode }) => {
   const [formData, setFormData] = useState<ScanFormData>({
     image: null,
     lookTitle: '',
+    outfitDetail: '',
     selectedCategories: {
       item: [],
       occasion: [],

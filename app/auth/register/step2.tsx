@@ -31,9 +31,12 @@ export default function Step2({ formData, onBack }: Step2Props) {
   const [weight, setWeight] = useState('');
   const [skinTone, setSkinTone] = useState<number | null>(null);
   const [skinToneOptions, setSkinToneOptions] = useState<CustomSelectInputType[]>([]);
+  const [bodyShape, setBodyShape] = useState<number | null>(null);         // ✅ tambah
+  const [bodyShapeOptions, setBodyShapeOptions] = useState<CustomSelectInputType[]>([]); // ✅ tambah
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSkinTone, setIsLoadingSkinTone] = useState(true);
+  const [isLoadingBodyShape, setIsLoadingBodyShape] = useState(true);      // ✅ tambah
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertType, setAlertType] = useState<AlertType>(AlertType.DANGER);
@@ -43,10 +46,7 @@ export default function Step2({ formData, onBack }: Step2Props) {
     setAlertType(type);
     setAlertMessage(message);
     setAlertVisible(true);
-
-    setTimeout(() => {
-      setAlertVisible(false);
-    }, 5000);
+    setTimeout(() => setAlertVisible(false), 5000);
   };
 
   const genderOptions: CustomRadioButtonType[] = [
@@ -54,6 +54,7 @@ export default function Step2({ formData, onBack }: Step2Props) {
     { key: 'male', value: 'Male' },
   ];
 
+  // Fetch skin tones
   useEffect(() => {
     const fetchSkinTones = async () => {
       try {
@@ -68,18 +69,12 @@ export default function Step2({ formData, onBack }: Step2Props) {
           })) || [];
 
         setSkinToneOptions(options);
-
-        if (options.length > 0) {
-          setSkinTone(options[0].key as number);
-        }
+        if (options.length > 0) setSkinTone(options[0].key as number);
       } catch (error: any) {
         const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
-
-        const errorMessage =
-          errors
-            ? Object.values(errors)[0][0]
-            : error.response?.data?.message || 'Failed to load skin tone options';
-
+        const errorMessage = errors
+          ? Object.values(errors)[0][0]
+          : error.response?.data?.message || 'Failed to load skin tone options';
         showAlert(AlertType.DANGER, errorMessage);
       } finally {
         setIsLoadingSkinTone(false);
@@ -89,8 +84,39 @@ export default function Step2({ formData, onBack }: Step2Props) {
     fetchSkinTones();
   }, []);
 
+  // ✅ Fetch body shapes
+  useEffect(() => {
+    const fetchBodyShapes = async () => {
+      try {
+        setIsLoadingBodyShape(true);
+        const response = await authService.getBodyShapes();
+
+        const options: CustomSelectInputType[] =
+          response.data?.data?.map((item: any) => ({
+            key: item.id,
+            value: item.title,
+            description: item.description,
+          })) || [];
+
+        setBodyShapeOptions(options);
+        if (options.length > 0) setBodyShape(options[0].key as number);
+      } catch (error: any) {
+        const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
+        const errorMessage = errors
+          ? Object.values(errors)[0][0]
+          : error.response?.data?.message || 'Failed to load body shape options';
+        showAlert(AlertType.DANGER, errorMessage);
+      } finally {
+        setIsLoadingBodyShape(false);
+      }
+    };
+
+    fetchBodyShapes();
+  }, []);
+
   const handleCompleteSignup = async () => {
-    if (!dateOfBirth || !height || !weight || !skinTone) {
+    // ✅ tambah bodyShape ke validasi
+    if (!dateOfBirth || !height || !weight || !skinTone || !bodyShape) {
       showAlert(AlertType.ALERT, 'Please complete all fields');
       return;
     }
@@ -112,7 +138,6 @@ export default function Step2({ formData, onBack }: Step2Props) {
     setAlertVisible(false);
 
     try {
-    
       const genderMap: Record<GenderType, string> = {
         female: 'FEMALE',
         male: 'MALE',
@@ -124,10 +149,11 @@ export default function Step2({ formData, onBack }: Step2Props) {
         password: formData.password,
         password_confirmation: formData.password,
         gender: genderMap[gender],
-        date_of_birth: dateOfBirth, 
+        date_of_birth: dateOfBirth,
         height: heightInt,
         weight: weightInt,
         skin_tone_id: skinTone,
+        body_shape_id: bodyShape, // ✅ tambah
       };
 
       const response = await authService.register(registrationData);
@@ -136,13 +162,8 @@ export default function Step2({ formData, onBack }: Step2Props) {
       const user = response.data?.data?.user;
       const message = response.data?.message;
 
-      if (token) {
-        await storageHelper.setItem('login_token', token);
-      }
-
-      if (user) {
-        await storageHelper.setItem('user_data', JSON.stringify(user));
-      }
+      if (token) await storageHelper.setItem('login_token', token);
+      if (user) await storageHelper.setItem('user_data', JSON.stringify(user));
 
       if (message && message !== 'Success') {
         showAlert(AlertType.SUCCESS, message);
@@ -152,12 +173,9 @@ export default function Step2({ formData, onBack }: Step2Props) {
 
     } catch (error: any) {
       const errors = error.response?.data?.errors as Record<string, string[]> | undefined;
-
-      const errorMessage =
-        errors
-          ? Object.values(errors)[0][0]
-          : error.response?.data?.message || 'Registration failed';
-
+      const errorMessage = errors
+        ? Object.values(errors)[0][0]
+        : error.response?.data?.message || 'Registration failed';
       showAlert(AlertType.DANGER, errorMessage);
     } finally {
       setIsLoading(false);
@@ -226,6 +244,16 @@ export default function Step2({ formData, onBack }: Step2Props) {
           onValueChange={(item) => setSkinTone(item.key as number)}
         />
 
+        {/* ✅ tambah body shape */}
+        <CustomSelectInput
+          label="Body shape"
+          icon="body-outline"
+          items={bodyShapeOptions}
+          placeholder={isLoadingBodyShape ? 'Loading...' : 'Select your body shape'}
+          value={bodyShape}
+          onValueChange={(item) => setBodyShape(item.key as number)}
+        />
+
         <View className="flex-row gap-3 mt-4">
           <View className="flex-1">
             <AuthButton
@@ -242,7 +270,7 @@ export default function Step2({ formData, onBack }: Step2Props) {
               color="primary"
               icon="checkmark-outline"
               onPress={handleCompleteSignup}
-              disabled={isLoading || isLoadingSkinTone}
+              disabled={isLoading || isLoadingSkinTone || isLoadingBodyShape}
             />
           </View>
         </View>
