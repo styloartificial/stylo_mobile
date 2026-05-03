@@ -1,19 +1,19 @@
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 import { ref, onChildAdded, off, query, orderByChild, equalTo, onValue } from 'firebase/database';
 import { database } from 'helpers/firebaseHelper';
+import GenerationSteps, { GenerationStep } from 'components/scan/GenerationSteps';
 import NextStepButton from 'components/scan/NextStepButton';
 import SessionInfo from 'components/scan/SessionInfo';
 import CustomHeader from 'components/global/CustomHeader';
 import { useScan } from '../ScanContexs';
-import { Ionicons } from '@expo/vector-icons';
 
 interface Step3Props {
   onNext: () => void;
   onBack: () => void;
 }
 
-type Log = {
+type FirebaseLog = {
   id: number;
   title: string;
   description: string;
@@ -24,11 +24,50 @@ export default function Step3({ onNext, onBack }: Step3Props) {
   const { formData } = useScan();
   const ticketId = formData.ticketId;
 
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [steps, setSteps] = useState<GenerationStep[]>([]);
   const [isFinished, setIsFinished] = useState(false);
   const [startTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState('0s');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Queue untuk tampilkan log satu-satu dengan delay
+  const queueRef = useRef<FirebaseLog[]>([]);
+  const isProcessingRef = useRef(false);
+
+  const processQueue = () => {
+    if (isProcessingRef.current || queueRef.current.length === 0) return;
+
+    isProcessingRef.current = true;
+
+    const log = queueRef.current.shift()!;
+
+    setSteps(prev => {
+      const exists = prev.some(s => s.id === log.id);
+      if (exists) {
+        isProcessingRef.current = false;
+        setTimeout(processQueue, 600);
+        return prev;
+      }
+
+      const isLast = log.title === 'Successful generation';
+      const newStep: GenerationStep = {
+        id: log.id,
+        title: log.title,
+        description: log.description,
+        status: 'done',
+        timestamp: log.created_at,
+      };
+
+      const updated = [...prev, newStep].sort((a, b) => a.id - b.id);
+
+      setTimeout(() => {
+        isProcessingRef.current = false;
+        processQueue();
+      }, 600);
+
+      return updated;
+    });
+  };
 
   // Timer elapsed
   useEffect(() => {
@@ -55,13 +94,9 @@ export default function Step3({ onNext, onBack }: Step3Props) {
     const logsRef = ref(database, `tickets/${ticketId}/logs`);
 
     const unsubscribe = onChildAdded(logsRef, (snapshot) => {
-      const log = snapshot.val() as Log;
-
-      setLogs(prev => {
-        const exists = prev.some(l => l.id === log.id);
-        if (exists) return prev;
-        return [...prev, log].sort((a, b) => a.id - b.id);
-      });
+      const log = snapshot.val() as FirebaseLog;
+      queueRef.current.push(log);
+      processQueue();
     });
 
     return () => off(logsRef);
@@ -92,7 +127,7 @@ export default function Step3({ onNext, onBack }: Step3Props) {
     return () => off(ticketRequestRef);
   }, [ticketId]);
 
-  const completedSteps = logs.length;
+  const completedSteps = steps.filter(s => s.status === 'done' || s.status === 'ready').length;
   const sessionStatus: 'processing' | 'completed' = isFinished ? 'completed' : 'processing';
 
   return (
@@ -108,24 +143,7 @@ export default function Step3({ onNext, onBack }: Step3Props) {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         <View className="px-6 pt-4 gap-3">
-          <View className="bg-white rounded-xl p-4 gap-3">
-            {logs.length === 0 ? (
-              <Text className="text-gray-400 text-sm">Waiting for logs...</Text>
-            ) : (
-              logs.map((log, index) => (
-                <View key={`log-${log.id}-${index}`} className="flex-row items-start gap-3">
-                  <View className="mt-0.5">
-                    <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-gray-900">{log.title}</Text>
-                    <Text className="text-xs text-gray-500 mt-0.5">{log.description}</Text>
-                    <Text className="text-xs text-gray-400 mt-0.5">{log.created_at}</Text>
-                  </View>
-                </View>
-              ))
-            )}
-          </View>
+          <GenerationSteps data={steps} />
 
           <SessionInfo
             sessionId={ticketId}
