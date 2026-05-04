@@ -98,3 +98,51 @@ export const openTicket = async (params: {
   });
   return res.data.data;
 };
+
+export type ScanProduct = {
+  name: string;
+  img_url: string;
+  link_url: string;
+  price: string;
+  rating: string;
+  total_buy: string;
+};
+
+export type ScanResultData = {
+  ticket_id: string;
+  title: string;
+  summary: string;
+  img_urls: string[];
+};
+
+export const getScanResult = async (ticketId: string): Promise<ScanResultData> => {
+  const res = await axiosInstance.get(`/core/scan-result/${ticketId}`);
+  return res.data.data as ScanResultData;
+};
+
+export const getScanProducts = (
+  ticketId: string,
+  onData: (products: ScanProduct[]) => void
+) => {
+  const { ref, query, orderByChild, equalTo, onValue, off } = require('firebase/database');
+  const { database } = require('helpers/firebaseHelper');
+
+  const ticketRef = query(
+    ref(database, 'ticket-request'),
+    orderByChild('ticket_id'),
+    equalTo(ticketId)
+  );
+
+  onValue(ticketRef, (snapshot: any) => {
+    if (!snapshot.exists()) return;
+    const raw = snapshot.val();
+    const entries = Object.values(raw) as any[];
+    const ticket = entries.find((e: any) => e.ticket_id === ticketId);
+    if (ticket?.data) {
+      const products: ScanProduct[] = Object.values(ticket.data);
+      onData(products);
+    }
+  });
+
+  return () => off(ticketRef);
+};

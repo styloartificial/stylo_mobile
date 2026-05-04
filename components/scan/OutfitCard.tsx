@@ -5,7 +5,6 @@ import {
   Image,
   ScrollView,
   Dimensions,
-  TouchableOpacity,
 } from 'react-native';
 import AuthButton from 'components/AuthButton';
 
@@ -18,6 +17,7 @@ type OutfitCardProps = {
   title: string;
   subtitle: string;
   description: string;
+  images: string[];  // ✅ dari URL string, bukan require()
   onSaveOutfit: () => void;
   onSaveItems: () => void;
 };
@@ -26,17 +26,12 @@ export default function OutfitCard({
   title,
   subtitle,
   description,
+  images,
   onSaveOutfit,
   onSaveItems,
 }: OutfitCardProps) {
   const scrollViewRef = useRef<ScrollView | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  const images = [
-    require('../../assets/lucu1.jpg'),
-    require('../../assets/lucu1.jpg'),
-    require('../../assets/lucu1.jpg'),
-  ];
 
   const handleScroll = (event: any) => {
     const scrollX = event.nativeEvent.contentOffset.x;
@@ -57,57 +52,73 @@ export default function OutfitCard({
 
       {/* Image Carousel */}
       <View className="mt-2 px-4 mb-6">
-        <View className='bg-gray-100 py-2 px-2 rounded-lg '>
-          <ScrollView
-            ref={scrollViewRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={CARD_WIDTH + SPACING}
-            decelerationRate="fast"
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            contentContainerStyle={{
-              paddingHorizontal: 4,
-              gap: SPACING,
-            }}
-          >
-            {images.map((image, index) => (
-              <View 
-                key={index}
-                style={{ width: CARD_WIDTH }}
-                className="rounded-2xl overflow-hidden bg-gray-500"
+        <View className="bg-gray-100 py-2 px-2 rounded-lg">
+          {images.length > 0 ? (
+            <>
+              <ScrollView
+                ref={scrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={CARD_WIDTH + SPACING}
+                decelerationRate="fast"
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                contentContainerStyle={{
+                  paddingHorizontal: 4,
+                  gap: SPACING,
+                }}
               >
-                <Image
-                  source={image}
-                  style={{ width: '100%', height: 300 }}
-                  resizeMode="cover"
-                />
-              </View>
-            ))}
-          </ScrollView>
+                {images.map((imageUrl, index) => (
+                  <View
+                    key={index}
+                    style={{ width: CARD_WIDTH }}
+                    className="rounded-2xl overflow-hidden bg-gray-300"
+                  >
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={{ width: '100%', height: 300 }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
 
-          <View className="flex-row justify-center gap-2 mt-3 mb-2">
-            {images.map((_, index) => (
-              <View
-                key={index}
-                className={`h-1.5 rounded-full ${
-                  index === currentImageIndex
-                    ? 'w-6 bg-primary'
-                    : 'w-1.5 bg-gray-300'
-                }`}
-              />
-            ))}
-          </View>
+              {/* Dots indicator */}
+              {images.length > 1 && (
+                <View className="flex-row justify-center gap-2 mt-3 mb-2">
+                  {images.map((_, index) => (
+                    <View
+                      key={index}
+                      className={`h-1.5 rounded-full ${
+                        index === currentImageIndex
+                          ? 'w-6 bg-primary'
+                          : 'w-1.5 bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
+          ) : (
+            // Placeholder kalau belum ada gambar
+            <View
+              style={{ height: 300 }}
+              className="rounded-2xl bg-gray-200 items-center justify-center"
+            >
+              <Text className="text-gray-400 text-sm">No images available</Text>
+            </View>
+          )}
         </View>
-        
       </View>
 
+      {/* Description */}
       <View className="px-4">
         <Text className="text-base text-gray-600 leading-5">
           {description}
         </Text>
       </View>
 
+      {/* Action Buttons */}
       <View className="flex-row gap-3 px-4 mt-4">
         <View className="flex-1">
           <AuthButton
@@ -117,7 +128,6 @@ export default function OutfitCard({
             onPress={onSaveOutfit}
           />
         </View>
-
         <View className="flex-1">
           <AuthButton
             title="Single items"
